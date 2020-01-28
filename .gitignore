@@ -1,4 +1,5 @@
 .coverage
+.migrationconfig.cfg
 *.egg-info
 *.log
 *.mo
@@ -9,6 +10,7 @@ bin/
 buildout-cache/
 develop-eggs/
 eggs/
+extra/
 htmlcov/
 include/
 lib/
