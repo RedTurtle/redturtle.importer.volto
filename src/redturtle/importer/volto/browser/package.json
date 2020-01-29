@@ -1,0 +1,17 @@
+{
+  "name": "volto.migration.test.scripts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "draft-js": "^0.11.4",
+    "draft-js-import-html": "^1.4.1",
+    "draftjs-utils": "^0.10.2",
+    "esm": "^3.2.25",
+    "jsdom": "^16.0.1",
+    "lodash": "^4.17.15",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "uuid": "^3.4.0"
+  }
+}
