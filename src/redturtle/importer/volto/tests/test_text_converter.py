@@ -99,6 +99,60 @@ class TestDraftjsConverter(unittest.TestCase):
             },
         )
 
+    def test_text_with_callout(self):
+        result = self.tool.conversion_tool(
+            html='<p class="callout"><span>callout!</span></p>'
+        )
+        self.assertEqual(len(result), 1)
+        p = result[0]['text']['blocks'][0]
+        entityMap = result[0]['text']['entityMap']
+        self.assertEqual(result[0]['@type'], 'text')
+        self.assertEqual(p['entityRanges'], [])
+        self.assertEqual(p['text'], 'callout!')
+        self.assertEqual(p['type'], 'callout')
+        self.assertEqual(entityMap, {})
+
+    def test_text_with_strong(self):
+        result = self.tool.conversion_tool(html='<p><strong>foo</strong></p>')
+        self.assertEqual(len(result), 1)
+        p = result[0]['text']['blocks'][0]
+        entityMap = result[0]['text']['entityMap']
+        self.assertEqual(result[0]['@type'], 'text')
+        self.assertEqual(p['entityRanges'], [])
+        self.assertEqual(p['text'], 'foo')
+        self.assertEqual(
+            p['inlineStyleRanges'],
+            [{'offset': 0, 'length': 3, 'style': 'BOLD'}],
+        )
+        self.assertEqual(entityMap, {})
+
+    def test_text_with_code(self):
+        result = self.tool.conversion_tool(html='<p><code>foo</code></p>')
+        self.assertEqual(len(result), 1)
+        p = result[0]['text']['blocks'][0]
+        entityMap = result[0]['text']['entityMap']
+        self.assertEqual(result[0]['@type'], 'text')
+        self.assertEqual(p['entityRanges'], [])
+        self.assertEqual(p['text'], 'foo')
+        self.assertEqual(
+            p['inlineStyleRanges'],
+            [{'offset': 0, 'length': 3, 'style': 'CODE'}],
+        )
+        self.assertEqual(entityMap, {})
+
+    def test_text_with_blockquote(self):
+        result = self.tool.conversion_tool(
+            html='<blockquote><p>foo</p></blockquote>'
+        )
+        self.assertEqual(len(result), 1)
+        p = result[0]['text']['blocks'][0]
+        entityMap = result[0]['text']['entityMap']
+        self.assertEqual(result[0]['@type'], 'text')
+        self.assertEqual(p['entityRanges'], [])
+        self.assertEqual(p['text'], 'foo')
+        self.assertEqual(p['type'], 'blockquote')
+        self.assertEqual(entityMap, {})
+
     def test_text_with_image(self):
         result = self.tool.conversion_tool(
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-right" data-linktype="image"/></p>'  # noqa
@@ -118,3 +172,27 @@ class TestDraftjsConverter(unittest.TestCase):
     def test_text_with_multiple_items(self):
         result = self.tool.conversion_tool(html=SAMPLE_HTML)
         self.assertEqual(len(result), 4)
+
+    def test_text_with_table(self):
+        html = '''
+        <table border="1">
+            <tbody>
+                <tr>
+                    <td><strong>foo</strong></td>
+                    <td><strong>bar</strong></td>
+                    <td>baz</td>
+                </tr>
+            </tbody>
+        </table>
+        '''
+        result = self.tool.conversion_tool(html=html)
+        self.assertEqual(len(result), 1)
+        block = result[0]
+        self.assertEqual(block['@type'], 'table')
+        rows = block['table']['rows']
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(rows[0]['cells']), 3)
+        self.assertEqual(rows[0]['cells'][0]['type'], 'data')
+        self.assertEqual(
+            rows[0]['cells'][0]['value']['blocks'][0]['text'], 'foo'
+        )
