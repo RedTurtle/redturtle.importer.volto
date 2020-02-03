@@ -51,10 +51,9 @@ setup(
     install_requires=[
         'setuptools',
         # -*- Extra requirements: -*-
-        'z3c.jbot',
         'plone.api>=1.8.4',
-        'plone.restapi',
         'redturtle.importer.base',
+        'plone.restapi>=6.2.2',
     ],
     extras_require={
         'test': [
@@ -70,7 +69,5 @@ setup(
     entry_points="""
     [z3c.autoinclude.plugin]
     target = plone
-    [console_scripts]
-    update_locale = redturtle.importer.volto.locales.update:update_locale
     """,
 )

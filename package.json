@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "draft-js": "^0.11.4",
     "draft-js-import-html": "^1.4.1",
     "draftjs-utils": "^0.10.2",
@@ -13,5 +13,9 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "uuid": "^3.4.0"
+  },
+  "scripts": {
+    "convert-to-draftjs": "node -r esm draftjs/text_converter.js",
+    "convert-to-draftjs-debug": "NODE_ENV=development node -r esm draftjs/text_converter.js"
   }
 }
