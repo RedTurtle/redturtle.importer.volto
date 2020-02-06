@@ -13,53 +13,8 @@ __ https://github.com/RedTurtle/redturtle.importer.base
 Features
 --------
 
-- There is a new step `volto_blocks_converter` that converts rich text from html (TinyMce) to json (DraftJs/blocks)
-
-
-Add step to blueprint
----------------------
-
-`redturtle.importer.base` blueprint can be overrided with `.migrationconfig.cfg` file like this::
-
-    [transmogrifier]
-    pipeline =
-        catalogsource
-        contentsmapping
-        setuuid
-        volto_blocks_converter
-        fieldscorrector
-        folders
-        constructor
-        schemaupdater
-        datafields
-        leftovers
-        discussions
-        datesupdater
-        workflowupdater
-        properties
-        owner
-        local_roles
-        context_fixes
-        reindexobject
-        logger
-        results
-        commit
-
-    [volto_blocks_converter]
-    blueprint = redturtle.importer.volto.sections.voltoBlocksConverter
-    types-to-convert = ['Document']
-
-    [catalogsource]
-    remote-url = http://localhost:8080
-    remote-root = /Plone
-    catalog-path = /Plone/portal_catalog
-    remote-username = admin
-    remote-password = admin
-    catalog-query = {'path': '/Plone'}
-
-
-`types-to-convert` accept a list of content-types with enabled "blocks behavior".
-
+There is a new adapter for **redturtle.importer.base** for content-types with **volto.blocks** enabled behavior
+that converts rich text from html (TinyMce) to json (DraftJs/blocks).
 
 Text converter
 --------------

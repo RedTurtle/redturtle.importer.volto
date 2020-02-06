@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="redturtle.importer.volto">
+    
+  <adapter
+    for="plone.restapi.behaviors.IBlocks"
+    provides="redturtle.importer.base.interfaces.IMigrationContextSteps"
+    factory=".volto_blocks.ConvertToBlocks"
+    />
+
+</configure>

@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 """Setup tests for this package."""
-from redturtle.importer.volto.sections.to_volto_blocks import ToVoltoBlocks
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
+from plone import api
+from plone.dexterity.interfaces import IDexterityFTI
+from redturtle.importer.base.interfaces import IMigrationContextSteps
 from redturtle.importer.volto.testing import (
     REDTURTLE_IMPORTER_VOLTO_INTEGRATION_TESTING,  # noqa: E501
 )
+from zope.component import queryUtility
 
 import unittest
 
@@ -28,12 +33,21 @@ class TestDraftjsConverter(unittest.TestCase):
         """Custom shared utility setup for tests."""
         self.portal = self.layer['portal']
         self.request = self.layer['request']
-        self.tool = ToVoltoBlocks(
-            transmogrifier=None, name=None, options={}, previous=None
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
+
+        # enable blocks behavior
+        fti = queryUtility(IDexterityFTI, name='Document')
+        behaviors = [x for x in fti.behaviors]
+        behaviors.append('volto.blocks')
+        fti.behaviors = tuple(behaviors)
+
+        self.document = api.content.create(
+            container=self.portal, type='Document', title='Foo'
         )
+        self.converter = IMigrationContextSteps(self.document)
 
     def test_simple_text(self):
-        result = self.tool.conversion_tool(html='<p>foo</p>')
+        result = self.converter.conversion_tool(html='<p>foo</p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
         entityMap = result[0]['text']['entityMap']
@@ -44,7 +58,7 @@ class TestDraftjsConverter(unittest.TestCase):
 
     def test_text_with_inline_styles(self):
 
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<p><em>foo</em> bar <strong>baz</strong></p>'
         )
         self.assertEqual(len(result), 1)
@@ -63,7 +77,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_empty(self):
-        result = self.tool.conversion_tool(html='<p></p>')
+        result = self.converter.conversion_tool(html='<p></p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
         entityMap = result[0]['text']['entityMap']
@@ -73,7 +87,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_with_links(self):
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<p><a href="http://www.plone.com" data-linktype="external" data-val="http://www.plone.com">this is a link</a></p>'  # noqa
         )
         self.assertEqual(len(result), 1)
@@ -100,7 +114,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
 
     def test_text_with_callout(self):
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<p class="callout"><span>callout!</span></p>'
         )
         self.assertEqual(len(result), 1)
@@ -113,7 +127,9 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_with_strong(self):
-        result = self.tool.conversion_tool(html='<p><strong>foo</strong></p>')
+        result = self.converter.conversion_tool(
+            html='<p><strong>foo</strong></p>'
+        )
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
         entityMap = result[0]['text']['entityMap']
@@ -127,7 +143,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_with_code(self):
-        result = self.tool.conversion_tool(html='<p><code>foo</code></p>')
+        result = self.converter.conversion_tool(html='<p><code>foo</code></p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
         entityMap = result[0]['text']['entityMap']
@@ -141,7 +157,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_with_blockquote(self):
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<blockquote><p>foo</p></blockquote>'
         )
         self.assertEqual(len(result), 1)
@@ -154,7 +170,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_text_with_image(self):
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-right" data-linktype="image"/></p>'  # noqa
         )
         self.assertEqual(len(result), 1)
@@ -163,14 +179,14 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(block['align'], 'right')
         self.assertEqual(block['url'], 'https://www.plone.org/logo.png')
 
-        result = self.tool.conversion_tool(
+        result = self.converter.conversion_tool(
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-inline" data-linktype="image"/></p>'  # noqa
         )
         block = result[0]
         self.assertEqual(block['align'], 'full')
 
     def test_text_with_multiple_items(self):
-        result = self.tool.conversion_tool(html=SAMPLE_HTML)
+        result = self.converter.conversion_tool(html=SAMPLE_HTML)
         self.assertEqual(len(result), 4)
 
     def test_text_with_table(self):
@@ -185,7 +201,7 @@ class TestDraftjsConverter(unittest.TestCase):
             </tbody>
         </table>
         '''
-        result = self.tool.conversion_tool(html=html)
+        result = self.converter.conversion_tool(html=html)
         self.assertEqual(len(result), 1)
         block = result[0]
         self.assertEqual(block['@type'], 'table')

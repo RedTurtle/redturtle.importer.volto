@@ -1,42 +1,35 @@
-# -*- coding: utf-8 -*-
-from collective.transmogrifier.interfaces import ISection
-from collective.transmogrifier.interfaces import ISectionBlueprint
+# -*- coding: utf-8 -*-s
+from App.Common import package_home
+from plone import api
 from Products.CMFPlone.utils import safe_unicode
+from redturtle.importer.base.interfaces import IMigrationContextSteps
 from urllib.parse import urlparse
 from uuid import uuid4
-from zope.interface import provider
 from zope.interface import implementer
 
 import json
-import lxml
 import logging
+import lxml
 import os
-import tempfile
+import re
 import subprocess
+import tempfile
 
 logger = logging.getLogger(__name__)
 
+RESOLVEUID_RE = re.compile(
+    r"""(['"]resolveuid/)(.*?)(['"])""", re.IGNORECASE | re.DOTALL
+)
 
-@implementer(ISection)
-@provider(ISectionBlueprint)
-class ToVoltoBlocks(object):
-    """ """
 
-    def __init__(self, transmogrifier, name, options, previous):
-        self.transmogrifier = transmogrifier
-        self.name = name
-        self.options = options
-        self.base = options.get("base", "")
-        self.tool_path = options.get("tool_path", os.getcwd())
-        self.previous = previous
-        self.context = getattr(transmogrifier, 'context', None)
-        self.types = options.get('types-to-convert', [])
+@implementer(IMigrationContextSteps)
+class ConvertToBlocks(object):
+    """
+    Convert text from HTML to DraftJs compatibile json and set blocks fields
+    """
 
-        # if "path-key" in options:
-        #     pathkeys = options["path-key"].splitlines()
-        # else:
-        #     pathkeys = defaultKeys(options["blueprint"], name, "path")
-        # self.pathkey = Matcher(*pathkeys)
+    def __init__(self, context):
+        self.context = context
 
     def fix_headers(self, html):
         document = lxml.html.fromstring(html)
@@ -139,7 +132,7 @@ class ToVoltoBlocks(object):
                     else 'convert-to-draftjs',
                     filename,
                 ],
-                cwd=self.tool_path,
+                cwd=package_home(globals()),
             )
             with open(filename, 'r') as tmp:
                 result = json.load(tmp)
@@ -147,35 +140,55 @@ class ToVoltoBlocks(object):
             os.remove(filename)
         return result
 
-    def __iter__(self):
-        for item in self.previous:
-            if (
-                not item.get("text", False)
-                or item.get('_type', '') not in self.types
-            ):
-                yield item
-                continue
+    def unresolve_uid(self, x):
+        uid = x.group(2)
+        end = ''
+        if '/' in uid:
+            uid, end = uid.split('/', 1)
+        obj = api.content.get(UID=uid)
+        if end:
+            result = "'{0}/{1}'".format(obj.absolute_url(), end)
+        else:
+            result = "'{0}'".format(obj.absolute_url())
+        return result
 
-            html = item["text"]
-            html = self.fix_headers(html)
-            html = self.extract_img_from_tags(html)
+    def get_raw_html(self):
+        text = getattr(self.context, 'text', None)
+        if not text:
+            return ''
+        return RESOLVEUID_RE.sub(self.unresolve_uid, text.raw)
 
-            title_uuid = str(uuid4())
-            item['blocks'] = {title_uuid: {"@type": "title"}}
-            item['blocks_layout'] = {"items": [title_uuid]}
+    def doSteps(self):
+        """
+        do something here
+        """
+        text = getattr(self.context, 'text', None)
+        if not text:
+            return ''
+        html = text.raw
+        if not html:
+            # item has no text
+            return
+        html = self.fix_headers(html)
+        html = self.extract_img_from_tags(html)
 
-            try:
-                result = self.conversion_tool(html)
-            except (ValueError, UnicodeDecodeError):
-                logger.error("Failed to convert HTML {}".format(item["_path"]))
-                yield item
-                continue
+        title_uuid = str(uuid4())
+        blocks = {title_uuid: {"@type": "title"}}
+        blocks_layout = {"items": [title_uuid]}
 
-            for paragraph in result:
-                paragraph = self.fix_url(paragraph, type_=paragraph['@type'])
+        try:
+            result = self.conversion_tool(html)
+        except (ValueError, UnicodeDecodeError):
+            logger.error(
+                "Failed to convert HTML {}".format(self.context.absolute_url())
+            )
 
-                text_uuid = str(uuid4())
-                item['blocks'][text_uuid] = paragraph
-                item['blocks_layout']["items"].append(text_uuid)
-            item['text'] = None
-            yield item
+        for paragraph in result:
+            paragraph = self.fix_url(paragraph, type_=paragraph['@type'])
+
+            text_uuid = str(uuid4())
+            blocks[text_uuid] = paragraph
+            blocks_layout["items"].append(text_uuid)
+        self.context.blocks = blocks
+        self.context.blocks_layout = blocks_layout
+        self.context.text = None
