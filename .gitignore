@@ -1,5 +1,4 @@
 .coverage
-.migrationconfig.cfg
 *.egg-info
 *.log
 *.mo
