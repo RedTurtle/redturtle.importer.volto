@@ -34,7 +34,7 @@ install:
   - yarn
 
 before_script:
-  - docker run -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
+  - docker run -d -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
 
 script:
   # Run code-analysis, except on Python 3.6, which mysteriously fails to find zc.buildout.
