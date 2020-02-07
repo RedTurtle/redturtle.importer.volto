@@ -30,7 +30,7 @@ class RedturtleImporterVoltoLayer(PloneSandboxLayer):
         self.loadZCML(package=collective.jsonmigrator)
         self.loadZCML(package=collective.transmogrifier)
         self.loadZCML(package=plone.restapi)
-        self.loadZCML(package=redturtle.importer.base)
+        # self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
         self.loadZCML(package=transmogrify.dexterity)
 
