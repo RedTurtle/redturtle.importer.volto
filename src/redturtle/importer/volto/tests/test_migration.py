@@ -6,7 +6,7 @@ from plone import api
 from plone.dexterity.interfaces import IDexterityFTI
 from plone.protect.authenticator import createToken
 from redturtle.importer.volto.testing import (
-    REDTURTLE_IMPORTER_VOLTO_FUNCTIONAL_TESTING,  # noqa: E501
+    REDTURTLE_IMPORTER_VOLTO_DOCKER_FUNCTIONAL_TESTING,  # noqa: E501
 )
 from zope.component import queryUtility
 
@@ -16,7 +16,7 @@ import unittest
 class TestMigration(unittest.TestCase):
     """"""
 
-    layer = REDTURTLE_IMPORTER_VOLTO_FUNCTIONAL_TESTING
+    layer = REDTURTLE_IMPORTER_VOLTO_DOCKER_FUNCTIONAL_TESTING
 
     def setUp(self):
         """Custom shared utility setup for tests."""

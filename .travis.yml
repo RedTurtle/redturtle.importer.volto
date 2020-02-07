@@ -22,6 +22,7 @@ matrix:
   fast_finish: true
 
 before_install:
+  - docker run - d -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
   - nvm install $NODE_VERSION
   - node -v
   - virtualenv -p `which python` .
@@ -32,9 +33,6 @@ install:
   - bin/buildout -N -t 3 code-analysis:return-status-codes=True annotate
   - bin/buildout -N -t 3 code-analysis:return-status-codes=True
   - yarn
-
-before_script:
-  - docker run -d -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
 
 script:
   # Run code-analysis, except on Python 3.6, which mysteriously fails to find zc.buildout.
