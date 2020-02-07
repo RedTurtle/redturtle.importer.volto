@@ -8,7 +8,12 @@ from plone.app.testing import IntegrationTesting
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
 
+import collective.jsonmigrator
+import collective.transmogrifier
+import plone.restapi
+import redturtle.importer.base
 import redturtle.importer.volto
+import transmogrify.dexterity
 
 
 class RedturtleImporterVoltoLayer(PloneSandboxLayer):
@@ -19,10 +24,12 @@ class RedturtleImporterVoltoLayer(PloneSandboxLayer):
         # Load any other ZCML that is required for your tests.
         # The z3c.autoinclude feature is disabled in the Plone fixture base
         # layer.
-        import plone.restapi
-
+        self.loadZCML(package=collective.jsonmigrator)
+        self.loadZCML(package=collective.transmogrifier)
         self.loadZCML(package=plone.restapi)
+        self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
+        self.loadZCML(package=transmogrify.dexterity)
 
     # def setUpPloneSite(self, portal):
     #     applyProfile(portal, 'redturtle.importer.volto:default')

@@ -8,6 +8,9 @@ cache:
 python:
   - "3.7"
 
+services:
+  - docker
+
 env:
   - NODE_VERSION="stable"
 
@@ -17,6 +20,7 @@ matrix:
       env: PLONE_VERSION=52
   sudo: true
   fast_finish: true
+
 before_install:
   - nvm install $NODE_VERSION
   - node -v
@@ -29,10 +33,13 @@ install:
   - bin/buildout -N -t 3 code-analysis:return-status-codes=True
   - yarn
 
+before_script:
+  - docker run -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
+
 script:
   # Run code-analysis, except on Python 3.6, which mysteriously fails to find zc.buildout.
   - python --version 2> /dev/stdout | grep 3.6 || bin/code-analysis
-  - bin/test --all
+  - bin/test
 
 after_success:
   - bin/createcoverage --output-dir=parts/test/coverage

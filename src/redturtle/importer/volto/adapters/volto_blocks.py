@@ -158,7 +158,7 @@ class ConvertToBlocks(object):
             return ''
         return RESOLVEUID_RE.sub(self.unresolve_uid, text.raw)
 
-    def doSteps(self):
+    def doSteps(self, item={}):
         """
         do something here
         """
