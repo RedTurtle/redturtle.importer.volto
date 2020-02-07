@@ -22,7 +22,7 @@ matrix:
   fast_finish: true
 
 before_install:
-  - docker run - d -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
+  - docker run -d -p 8080:8080 -e SITE="Plone" -e PLONE_ADDONS="redturtle.exporter.base" plone:4.3
   - nvm install $NODE_VERSION
   - node -v
   - virtualenv -p `which python` .
