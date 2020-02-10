@@ -54,6 +54,7 @@ setup(
         'plone.api>=1.8.4',
         'redturtle.importer.base',
         'plone.restapi>=6.2.2',
+        'collective.folderishtypes[dexterity]',
     ],
     extras_require={
         'test': [

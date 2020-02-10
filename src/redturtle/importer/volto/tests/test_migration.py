@@ -14,7 +14,11 @@ import unittest
 
 
 class TestMigration(unittest.TestCase):
-    """"""
+    """
+    This test suite works in conjunction with a docker image that runs
+    redturtle.exporter.base install profile to pre-populate a site with some
+    contents: https://github.com/RedTurtle/redturtle.exporter.base/blob/master/src/redturtle/exporter/base/setuphandlers.py
+    """
 
     layer = REDTURTLE_IMPORTER_VOLTO_DOCKER_FUNCTIONAL_TESTING
 
@@ -30,12 +34,13 @@ class TestMigration(unittest.TestCase):
         behaviors.append('volto.blocks')
         fti.behaviors = tuple(behaviors)
 
-    def test_migration_items_with_blocks(self):
         migration_view = api.content.get_view(
             name="data-migration", context=self.portal, request=self.request
         )
         self.request.form['_authenticator'] = createToken()
         migration_view.do_migrate()
+
+    def test_migration_items_with_blocks(self):
         document = api.content.find(id='first-document')[0].getObject()
         self.assertEqual(document.text, None)
         self.assertNotEqual(document.blocks, {})
@@ -43,3 +48,45 @@ class TestMigration(unittest.TestCase):
         news = api.content.find(id='a-news')[0].getObject()
         self.assertNotEqual(news.text, None)
         self.assertEqual(getattr(news, 'blocks', None), None)
+
+    def test_migration_collection(self):
+        # we don't have collection items
+        collections = api.content.find(portal_type='Collection')
+        self.assertEqual(len(collections), 0)
+
+        # but migration converts collections into pages with listing block
+        collections = api.content.find(id='collection-item')
+        self.assertEqual(len(collections), 1)
+        collection = collections[0].getObject()
+        self.assertNotEqual(collection.blocks, {})
+        self.assertEqual(collection.portal_type, 'Document')
+        listing = [x for x in collection.blocks.values()][1]
+        self.assertEqual(listing['@type'], 'listing')
+        self.assertEqual(
+            listing['query'],
+            [
+                {
+                    'i': 'portal_type',
+                    'o': 'plone.app.querystring.operation.selection.any',
+                    'v': ['Document', 'News Item'],
+                }
+            ],
+        )
+
+    def test_migration_folders(self):
+        # we don't have folders
+        folders = api.content.find(portal_type='Folder')
+        self.assertEqual(len(folders), 0)
+
+        # but migration converts folders into pages with listing block
+        folders = api.content.find(id='folder-foo')
+        self.assertEqual(len(folders), 1)
+        folder = folders[0].getObject()
+        self.assertNotEqual(folder.blocks, {})
+        self.assertEqual(folder.portal_type, 'Document')
+        listing = [x for x in folder.blocks.values()][1]
+        self.assertEqual(listing['@type'], 'listing')
+        self.assertEqual(listing['query'], [])
+        self.assertEqual(listing['sort_on'], 'getObjPositionInParent')
+        self.assertEqual(listing['b_size'], '20')
+        self.assertEqual(folder.keys(), ['second-document'])

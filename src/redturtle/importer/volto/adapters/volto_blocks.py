@@ -169,12 +169,24 @@ class ConvertToBlocks(object):
         if not html:
             # item has no text
             return
-        html = self.fix_headers(html)
+        try:
+            html = self.fix_headers(html)
+        except ValueError:
+            logger.warning(
+                'Unable to parse html for {}. Skipping.'.format(
+                    self.context.absolute_url()
+                )
+            )
+            return
         html = self.extract_img_from_tags(html)
-
-        title_uuid = str(uuid4())
-        blocks = {title_uuid: {"@type": "title"}}
-        blocks_layout = {"items": [title_uuid]}
+        blocks = self.context.blocks
+        blocks_layout = self.context.blocks_layout
+        if not blocks:
+            # add title as default. blocks can be already populated by
+            # redturtle.importer.volto.voltomappings step
+            title_uuid = str(uuid4())
+            blocks = {title_uuid: {"@type": "title"}}
+            blocks_layout = {"items": [title_uuid]}
 
         try:
             result = self.conversion_tool(html)

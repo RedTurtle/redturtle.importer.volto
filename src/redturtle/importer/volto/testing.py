@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from plone.app.contenttypes.testing import PLONE_APP_CONTENTTYPES_FIXTURE
 from plone.app.robotframework.testing import REMOTE_LIBRARY_BUNDLE_FIXTURE
-
-# from plone.app.testing import applyProfile
+from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import IntegrationTesting
 from plone.app.testing import PloneSandboxLayer
@@ -46,12 +45,17 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
         # Load any other ZCML that is required for your tests.
         # The z3c.autoinclude feature is disabled in the Plone fixture base
         # layer.
+
+        import collective.folderishtypes.dx
+
         self.loadZCML(package=collective.jsonmigrator)
         self.loadZCML(package=collective.transmogrifier)
         self.loadZCML(package=plone.restapi)
         self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
         self.loadZCML(package=transmogrify.dexterity)
+        self.loadZCML(package=collective.folderishtypes)
+        self.loadZCML(package=collective.folderishtypes.dx)
 
     def setUp(self):
         """
@@ -68,7 +72,11 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
                 sys.stdout.write(".")
             if i == 9:
                 sys.stdout.write("Docker Instance could not be started !!!")
+
         super(RedturtleImporterVoltoDockerLayer, self).setUp()
+
+    def setUpPloneSite(self, portal):
+        applyProfile(portal, 'collective.folderishtypes.dx:default')
 
 
 REDTURTLE_IMPORTER_VOLTO_FIXTURE = RedturtleImporterVoltoLayer()
