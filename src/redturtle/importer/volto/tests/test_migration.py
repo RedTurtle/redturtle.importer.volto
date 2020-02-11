@@ -90,3 +90,20 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(listing['sort_on'], 'getObjPositionInParent')
         self.assertEqual(listing['b_size'], '20')
         self.assertEqual(folder.keys(), ['second-document'])
+
+    def test_migration_default_views(self):
+        """
+        in origin we have:
+        - folder-bar
+          - folder-baz
+            - third-document
+            - example-image
+            - example-file
+
+        and third-document is the default view
+        """
+        folder = api.content.get('/plone/folder-bar/folder-baz')
+        self.assertNotIn('third-document', folder.keys())
+        self.assertEqual(len(folder.keys()), 2)
+        self.assertEqual(folder.portal_type, 'Document')
+        self.assertNotEqual(folder.blocks, {})
