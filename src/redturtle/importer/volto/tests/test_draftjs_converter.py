@@ -185,6 +185,45 @@ class TestDraftjsConverter(unittest.TestCase):
         block = result[0]
         self.assertEqual(block['align'], 'full')
 
+    def test_insert_images_in_separate_tags(self):
+        html = '<p><img src="/image.png"/>Some text</p>'
+        result = self.converter.extract_img_from_tags(html=html)
+        self.assertEqual(
+            result, '<p><img src="/image.png"></p><p>Some text</p>'
+        )
+
+        converted = self.converter.conversion_tool(result)
+        self.assertEqual(len(converted), 2)
+        image = converted[0]
+        text = converted[1]
+
+        self.assertEqual(image['@type'], 'image')
+        self.assertEqual(image['url'], '/image.png')
+        self.assertEqual(text['@type'], 'text')
+        self.assertEqual(text['text']['blocks'][0]['text'], 'Some text')
+
+    def test_insert_images_in_separate_tags_and_keep_text(self):
+        html = '<p><img src="/image.png"/>foo <strong>BAR</strong>, baz</p>'
+        result = self.converter.extract_img_from_tags(html=html)
+        self.assertEqual(
+            result,
+            '<p><img src="/image.png"></p><p>foo <strong>BAR</strong>, baz</p>',
+        )
+
+        converted = self.converter.conversion_tool(result)
+        self.assertEqual(len(converted), 2)
+        image = converted[0]
+        text = converted[1]
+
+        self.assertEqual(image['@type'], 'image')
+        self.assertEqual(image['url'], '/image.png')
+        self.assertEqual(text['@type'], 'text')
+        self.assertEqual(text['text']['blocks'][0]['text'], 'foo BAR, baz')
+        self.assertEqual(
+            text['text']['blocks'][0]['inlineStyleRanges'],
+            [{'length': 3, 'offset': 4, 'style': 'BOLD'}],
+        )
+
     def test_text_with_multiple_items(self):
         result = self.converter.conversion_tool(html=SAMPLE_HTML)
         self.assertEqual(len(result), 4)

@@ -81,6 +81,9 @@ class ConvertToBlocks(object):
                 root.index(paragraph),
                 lxml.html.builder.P(image),  # Wrap with a paragraph
             )
+            if image.tail:
+                paragraph.text = image.tail
+                image.tail = ''
             # Move image to a new paragraph before current
 
             # clenup empty tags

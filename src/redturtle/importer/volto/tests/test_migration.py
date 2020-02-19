@@ -88,7 +88,7 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(listing['@type'], 'listing')
         self.assertEqual(listing['query'], [])
         self.assertEqual(listing['sort_on'], 'getObjPositionInParent')
-        self.assertEqual(listing['b_size'], '20')
+        self.assertEqual(listing['b_size'], '30')
         self.assertEqual(folder.keys(), ['second-document'])
 
     def test_migration_default_views(self):

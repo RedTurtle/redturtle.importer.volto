@@ -49,8 +49,9 @@ class VoltoCustomMapping(object):
             listing_uuid: {
                 "@type": "listing",
                 "query": item.get('query', []),
-                "sort_on": item.get('sort_on', ''),
-                "b_size": item.get('item_count', ''),
+                "sort_on": item.get('sort_on', 'getObjPositionInParent'),
+                "sort_order": item.get('sort_reversed', False),
+                "b_size": item.get('item_count', '30'),
                 "block": listing_uuid,
             },
         }
