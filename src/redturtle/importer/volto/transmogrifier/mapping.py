@@ -44,18 +44,29 @@ class VoltoCustomMapping(object):
     def generate_listing_query(self, item):
         title_uuid = str(uuid4())
         listing_uuid = str(uuid4())
-        item['blocks'] = {
+        data = {}
+        query = item.get('query', [])
+        if not query:
+            query = [
+                {
+                    "i": "path",
+                    "o": "plone.app.querystring.operation.string.path",
+                    "v": "{uid}::1".format(uid=item.get("_uid")),
+                }
+            ]
+        data['blocks'] = {
             title_uuid: {"@type": "title"},
             listing_uuid: {
                 "@type": "listing",
-                "query": item.get('query', []),
+                "query": query,
                 "sort_on": item.get('sort_on', 'getObjPositionInParent'),
                 "sort_order": item.get('sort_reversed', False),
                 "b_size": item.get('item_count', '30'),
                 "block": listing_uuid,
             },
         }
-        item['blocks_layout'] = {'items': [title_uuid, listing_uuid]}
+        data['blocks_layout'] = {'items': [title_uuid, listing_uuid]}
+        return data
 
     def __iter__(self):
         for item in self.previous:
@@ -100,9 +111,11 @@ class VoltoCustomMapping(object):
                     if default_item_type in ['Document', 'News Item']:
                         item['text'] = default_item.get('text')
                     elif default_item_type == 'Collection':
-                        self.generate_listing_query(default_item)
+                        blocks = self.generate_listing_query(default_item)
+                        item.update(blocks)
                     elif default_item_type in ['Folder', 'Portlet Page']:
-                        self.generate_listing_query(item)
+                        blocks = self.generate_listing_query(item)
+                        item.update(blocks)
                 else:
                     self.generate_listing_query(item)
                 item['_layout'] = ''

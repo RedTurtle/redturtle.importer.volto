@@ -6,6 +6,7 @@
     i18n_domain="redturtle.importer.volto">
 
   <include package=".adapters" />
+  <include package=".browser" />
   <include package=".transmogrifier" />
 
 </configure>

@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    i18n_domain="redturtle.importer.base">
+
+  <configure package="redturtle.importer.base">
+    <browser:page
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      name="data-migration"
+      class="redturtle.importer.volto.browser.migrations.VoltoMigrationMain"
+      template="browser/templates/migration.pt"
+      permission="cmf.ManagePortal"
+      />
+  </configure>
+</configure>
