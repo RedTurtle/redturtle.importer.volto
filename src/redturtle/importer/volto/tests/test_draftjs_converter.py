@@ -187,7 +187,7 @@ class TestDraftjsConverter(unittest.TestCase):
 
     def test_insert_images_in_separate_tags(self):
         html = '<p><img src="/image.png"/>Some text</p>'
-        result = self.converter.extract_img_from_tags(html=html)
+        result = self.converter.fix_html(html=html)
         self.assertEqual(
             result, '<p><img src="/image.png"></p><p>Some text</p>'
         )
@@ -204,7 +204,7 @@ class TestDraftjsConverter(unittest.TestCase):
 
     def test_insert_images_in_separate_tags_and_keep_text(self):
         html = '<p><img src="/image.png"/>foo <strong>BAR</strong>, baz</p>'
-        result = self.converter.extract_img_from_tags(html=html)
+        result = self.converter.fix_html(html=html)
         self.assertEqual(
             result,
             '<p><img src="/image.png"></p><p>foo <strong>BAR</strong>, baz</p>',
@@ -251,3 +251,40 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(
             rows[0]['cells'][0]['value']['blocks'][0]['text'], 'foo'
         )
+
+    def test_remove_empty_tags_from_html(self):
+        self.assertEqual(
+            self.converter.fix_html(html='<p>Foo</p>'), '<p>Foo</p>'
+        )
+        self.assertEqual(self.converter.fix_html(html='<p> </p>'), '')
+        self.assertEqual(
+            self.converter.fix_html(html='<p><strong><br /></strong></p>'),
+            '<p><strong><br></strong></p>',
+        )
+        self.assertEqual(self.converter.fix_html(html='<p><i> </i></p>'), '')
+        self.assertEqual(
+            self.converter.fix_html(html='<p><strong> </strong></p>'), ''
+        )
+        self.assertEqual(
+            self.converter.fix_html(html='<p><i><br /></i></p>'),
+            '<p><i><br></i></p>',
+        )
+        self.assertEqual(
+            self.converter.fix_html(html='<p><img src="/image.png"/></p>'),
+            '<p><img src="/image.png"></p>',
+        )
+        self.assertEqual(self.converter.fix_html(html='<i>'), '')
+
+    def test_generate_draftjs_without_empty_tags(self):
+        html = '''
+        <p>Foo</p>
+        <p> </p>
+        <p><strong><br /></strong></p>
+        <p><i> </i></p>
+        <p><strong> </strong></p>
+        <p> </p>
+        <p><i><br /></i></p>
+        <i>
+        '''
+        result = self.converter.conversion_tool(html=html)
+        self.assertEqual(len(result), 8)

@@ -86,7 +86,16 @@ class TestMigration(unittest.TestCase):
         self.assertEqual(folder.portal_type, 'Document')
         listing = [x for x in folder.blocks.values()][1]
         self.assertEqual(listing['@type'], 'listing')
-        self.assertEqual(listing['query'], [])
+        self.assertEqual(
+            listing['query'],
+            [
+                {
+                    'i': 'path',
+                    'o': 'plone.app.querystring.operation.string.path',
+                    'v': '{}::1'.format(folder.UID()),
+                }
+            ],
+        )
         self.assertEqual(listing['sort_on'], 'getObjPositionInParent')
         self.assertEqual(listing['b_size'], '30')
         self.assertEqual(folder.keys(), ['second-document'])

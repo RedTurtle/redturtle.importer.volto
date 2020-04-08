@@ -101,6 +101,8 @@ class VoltoCustomMapping(object):
                 item[typekey] = 'Document'
                 item['_layout'] = ''
                 self.generate_listing_query(item)
+                blocks = self.generate_listing_query(item)
+                item.update(blocks)
                 yield item
                 continue
             elif original_type == 'Folder':
@@ -117,7 +119,8 @@ class VoltoCustomMapping(object):
                         blocks = self.generate_listing_query(item)
                         item.update(blocks)
                 else:
-                    self.generate_listing_query(item)
+                    blocks = self.generate_listing_query(item)
+                    item.update(blocks)
                 item['_layout'] = ''
                 yield item
                 continue

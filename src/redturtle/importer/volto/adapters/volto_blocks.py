@@ -56,11 +56,36 @@ class ConvertToBlocks(object):
             + ['img']
         )
 
-    def extract_img_from_tags(self, html):
+    def fix_html(self, html):
         document = lxml.html.fromstring(html)
         root = document
         if root.tag != 'div':
             root = root.getparent()
+        self._extract_img_from_tags(document=document, root=root)
+        self._remove_empty_tags(root=root)
+        return ''.join(
+            safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
+        )
+
+    def _remove_empty_tags(self, root):
+        if root.text not in [None, '', '\xa0', ' ']:
+            # tag has some text
+            return
+        if root.tag in ['br', 'img']:
+            # it's a self-closing tag
+            return
+        children = root.getchildren()
+        if not children:
+            # empty element
+            root.getparent().remove(root)
+            return
+        for child in children:
+            self._remove_empty_tags(root=child)
+        if not root.getchildren():
+            # root had empty children that has been removed
+            root.getparent().remove(root)
+
+    def _extract_img_from_tags(self, document, root):
         for image in document.xpath('//img'):
             logger.info("Image outline: {}".format(self.outline(image)))
 
@@ -98,10 +123,6 @@ class ConvertToBlocks(object):
                 if img_parent.text is not None:
                     text = img_parent.text.strip()
             # clenup empty tags
-
-        return ''.join(
-            safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
-        )
 
     def fix_url(self, data, type_, parent={}):
         for k, v in list(data.items()):
@@ -181,7 +202,7 @@ class ConvertToBlocks(object):
                 )
             )
             return
-        html = self.extract_img_from_tags(html)
+        html = self.fix_html(html)
         blocks = self.context.blocks
         blocks_layout = self.context.blocks_layout
         if not blocks:
