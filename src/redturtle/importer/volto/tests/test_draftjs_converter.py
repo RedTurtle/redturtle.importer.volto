@@ -183,7 +183,7 @@ class TestDraftjsConverter(unittest.TestCase):
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-inline" data-linktype="image"/></p>'  # noqa
         )
         block = result[0]
-        self.assertEqual(block['align'], 'full')
+        self.assertEqual(block['align'], 'center')
 
     def test_converter_insert_images_in_separate_tags(self):
         html = '<p><img src="/image.png"/>Some text</p>'

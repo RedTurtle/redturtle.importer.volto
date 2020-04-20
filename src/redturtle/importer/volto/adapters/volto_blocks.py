@@ -185,13 +185,16 @@ class ConvertToBlocks(object):
         """
         do something here
         """
-        text = item.get('text', '')
+        text = getattr(self.context, 'text', None)
+
+        if text:
+            text = text.raw
+        else:
+            text = item.get('text', '')
+
         if not text:
             return ''
-        # html = text.raw
-        # if not html:
-        #     # item has no text
-        #     return
+
         try:
             html = self.fix_headers(text)
         except ValueError:

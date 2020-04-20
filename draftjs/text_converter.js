@@ -72,7 +72,7 @@ const generateImageBlock = (elem) => {
   } else if (elem.className.indexOf("image-right") !== -1) {
     block.align = "right";
   } else if (elem.className.indexOf("image-inline") !== -1) {
-    block.align = "full";
+    block.align = "center";
   }
   return block;
 };
