@@ -41,7 +41,10 @@ class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
                 uid=ref_obj.UID(), scale=url.split("@@images/")[1]
             )
         else:
-            return 'resolveuid/{}'.format(ref_obj.UID())
+            try:
+                return 'resolveuid/{}'.format(ref_obj.UID())
+            except AttributeError:
+                return ''
 
     def fix_references_in_blocks(self, item, data, parent={}):
         for k, v in list(data.items()):

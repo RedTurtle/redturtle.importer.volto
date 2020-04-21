@@ -46,7 +46,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
         self.converter = IMigrationContextSteps(self.document)
 
-    def test_simple_text(self):
+    def test_converter_simple_text(self):
         result = self.converter.conversion_tool(html='<p>foo</p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
@@ -56,7 +56,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p['text'], 'foo')
         self.assertEqual(entityMap, {})
 
-    def test_text_with_inline_styles(self):
+    def test_converter_text_with_inline_styles(self):
 
         result = self.converter.conversion_tool(
             html='<p><em>foo</em> bar <strong>baz</strong></p>'
@@ -76,7 +76,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
         self.assertEqual(entityMap, {})
 
-    def test_text_empty(self):
+    def test_converter_text_empty(self):
         result = self.converter.conversion_tool(html='<p></p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
@@ -86,7 +86,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p['text'], '')
         self.assertEqual(entityMap, {})
 
-    def test_text_with_links(self):
+    def test_converter_text_with_links(self):
         result = self.converter.conversion_tool(
             html='<p><a href="http://www.plone.com" data-linktype="external" data-val="http://www.plone.com">this is a link</a></p>'  # noqa
         )
@@ -113,7 +113,7 @@ class TestDraftjsConverter(unittest.TestCase):
             },
         )
 
-    def test_text_with_callout(self):
+    def test_converter_text_with_callout(self):
         result = self.converter.conversion_tool(
             html='<p class="callout"><span>callout!</span></p>'
         )
@@ -126,7 +126,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p['type'], 'callout')
         self.assertEqual(entityMap, {})
 
-    def test_text_with_strong(self):
+    def test_converter_text_with_strong(self):
         result = self.converter.conversion_tool(
             html='<p><strong>foo</strong></p>'
         )
@@ -142,7 +142,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
         self.assertEqual(entityMap, {})
 
-    def test_text_with_code(self):
+    def test_converter_text_with_code(self):
         result = self.converter.conversion_tool(html='<p><code>foo</code></p>')
         self.assertEqual(len(result), 1)
         p = result[0]['text']['blocks'][0]
@@ -156,7 +156,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
         self.assertEqual(entityMap, {})
 
-    def test_text_with_blockquote(self):
+    def test_converter_text_with_blockquote(self):
         result = self.converter.conversion_tool(
             html='<blockquote><p>foo</p></blockquote>'
         )
@@ -169,7 +169,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p['type'], 'blockquote')
         self.assertEqual(entityMap, {})
 
-    def test_text_with_image(self):
+    def test_converter_text_with_image(self):
         result = self.converter.conversion_tool(
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-right" data-linktype="image"/></p>'  # noqa
         )
@@ -183,9 +183,9 @@ class TestDraftjsConverter(unittest.TestCase):
             html='<p><img alt="" src="https://www.plone.org/logo.png" class="image-inline" data-linktype="image"/></p>'  # noqa
         )
         block = result[0]
-        self.assertEqual(block['align'], 'full')
+        self.assertEqual(block['align'], 'center')
 
-    def test_insert_images_in_separate_tags(self):
+    def test_converter_insert_images_in_separate_tags(self):
         html = '<p><img src="/image.png"/>Some text</p>'
         result = self.converter.fix_html(html=html)
         self.assertEqual(
@@ -202,7 +202,7 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(text['@type'], 'text')
         self.assertEqual(text['text']['blocks'][0]['text'], 'Some text')
 
-    def test_insert_images_in_separate_tags_and_keep_text(self):
+    def test_converter_insert_images_in_separate_tags_and_keep_text(self):
         html = '<p><img src="/image.png"/>foo <strong>BAR</strong>, baz</p>'
         result = self.converter.fix_html(html=html)
         self.assertEqual(
@@ -224,11 +224,11 @@ class TestDraftjsConverter(unittest.TestCase):
             [{'length': 3, 'offset': 4, 'style': 'BOLD'}],
         )
 
-    def test_text_with_multiple_items(self):
+    def test_converter_text_with_multiple_items(self):
         result = self.converter.conversion_tool(html=SAMPLE_HTML)
         self.assertEqual(len(result), 4)
 
-    def test_text_with_table(self):
+    def test_converter_text_with_table(self):
         html = '''
         <table border="1">
             <tbody>
@@ -252,7 +252,7 @@ class TestDraftjsConverter(unittest.TestCase):
             rows[0]['cells'][0]['value']['blocks'][0]['text'], 'foo'
         )
 
-    def test_remove_empty_tags_from_html(self):
+    def test_converter_remove_empty_tags_from_html(self):
         self.assertEqual(
             self.converter.fix_html(html='<p>Foo</p>'), '<p>Foo</p>'
         )
@@ -275,7 +275,7 @@ class TestDraftjsConverter(unittest.TestCase):
         )
         self.assertEqual(self.converter.fix_html(html='<i>'), '')
 
-    def test_generate_draftjs_without_empty_tags(self):
+    def test_converter_generate_draftjs_without_empty_tags(self):
         html = '''
         <p>Foo</p>
         <p> </p>
@@ -288,3 +288,13 @@ class TestDraftjsConverter(unittest.TestCase):
         '''
         result = self.converter.conversion_tool(html=html)
         self.assertEqual(len(result), 8)
+
+    def test_converter_embed_yt_video(self):
+        html = '''
+        <iframe src="https://www.youtube.com/embed/VASywEuqFd8"></iframe>
+        '''
+        result = self.converter.conversion_tool(html=html)
+        self.assertEqual(len(result), 1)
+        block = result[0]
+        self.assertEqual(block['@type'], 'video')
+        self.assertEqual(block['url'], 'https://youtu.be/VASywEuqFd8')
