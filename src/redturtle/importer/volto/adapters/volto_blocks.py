@@ -99,15 +99,21 @@ class ConvertToBlocks(object):
             if img_parent.tag == 'a':
                 image.attrib['data-href'] = img_parent.attrib.get('href', '')
             # Deal with images with links
-
             # Move image to a new paragraph before current
+            if image.tail:
+                if not paragraph.text:
+                    paragraph.text = image.tail
+                else:
+                    paragraph.insert(
+                        paragraph.index(image),
+                        lxml.html.builder.SPAN(image.tail),
+                    )
+                image.tail = ''
+
             root.insert(
                 root.index(paragraph),
                 lxml.html.builder.P(image),  # Wrap with a paragraph
             )
-            if image.tail:
-                paragraph.text = image.tail
-                image.tail = ''
             # Move image to a new paragraph before current
 
             # clenup empty tags

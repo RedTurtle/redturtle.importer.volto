@@ -202,6 +202,21 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(text['@type'], 'text')
         self.assertEqual(text['text']['blocks'][0]['text'], 'Some text')
 
+    def test_converter_split_image_tag_correctly(self):
+        html = '<p>Some text<img src="/image.png"/>other text</p>'
+        result = self.converter.fix_html(html=html)
+        self.assertEqual(
+            result,
+            '<p><img src="/image.png"></p><p>Some text<span>other text</span></p>',
+        )
+
+        html1 = '<p>Some text <span>foo</span><img src="/image.png"/><b>other</b> funny <b>text</b></p>'
+        result = self.converter.fix_html(html=html1)
+        self.assertEqual(
+            result,
+            '<p><img src="/image.png"></p><p>Some text <span>foo</span><b>other</b> funny <b>text</b></p>',
+        )
+
     def test_converter_insert_images_in_separate_tags_and_keep_text(self):
         html = '<p><img src="/image.png"/>foo <strong>BAR</strong>, baz</p>'
         result = self.converter.fix_html(html=html)
