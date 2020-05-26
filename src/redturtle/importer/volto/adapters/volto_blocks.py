@@ -86,8 +86,6 @@ class ConvertToBlocks(object):
 
     def _extract_img_from_tags(self, document, root):
         for image in document.xpath('//img'):
-            logger.info("Image outline: {}".format(self.outline(image)))
-
             # Get the current paragraph
             paragraph = image.getparent()
             while paragraph.getparent() != root:
@@ -99,10 +97,14 @@ class ConvertToBlocks(object):
             if img_parent.tag == 'a':
                 image.attrib['data-href'] = img_parent.attrib.get('href', '')
             # Deal with images with links
-            # Move image to a new paragraph before current
+
+            # If image has a tail, insert a new span to replace it
             if image.tail:
-                if not paragraph.text:
-                    paragraph.text = image.tail
+                if img_parent != paragraph:
+                    img_parent.insert(
+                        img_parent.index(image),
+                        lxml.html.builder.SPAN(image.tail),
+                    )
                 else:
                     paragraph.insert(
                         paragraph.index(image),
@@ -110,11 +112,8 @@ class ConvertToBlocks(object):
                     )
                 image.tail = ''
 
-            root.insert(
-                root.index(paragraph),
-                lxml.html.builder.P(image),  # Wrap with a paragraph
-            )
-            # Move image to a new paragraph before current
+            # move image before paragraph
+            root.insert(root.index(paragraph), lxml.html.builder.P(image))
 
             # clenup empty tags
             text = ''

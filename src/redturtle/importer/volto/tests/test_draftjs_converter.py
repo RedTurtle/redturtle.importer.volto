@@ -189,7 +189,8 @@ class TestDraftjsConverter(unittest.TestCase):
         html = '<p><img src="/image.png"/>Some text</p>'
         result = self.converter.fix_html(html=html)
         self.assertEqual(
-            result, '<p><img src="/image.png"></p><p>Some text</p>'
+            result,
+            '<p><img src="/image.png"></p><p><span>Some text</span></p>',
         )
 
         converted = self.converter.conversion_tool(result)
@@ -222,7 +223,7 @@ class TestDraftjsConverter(unittest.TestCase):
         result = self.converter.fix_html(html=html)
         self.assertEqual(
             result,
-            '<p><img src="/image.png"></p><p>foo <strong>BAR</strong>, baz</p>',
+            '<p><img src="/image.png"></p><p><span>foo </span><strong>BAR</strong>, baz</p>',
         )
 
         converted = self.converter.conversion_tool(result)
