@@ -1,7 +1,6 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:plone="http://namespaces.plone.org/plone"
-    xmlns:transmogrifier="http://namespaces.plone.org/transmogrifier"
     i18n_domain="redturtle.importer.volto">
 
   <utility

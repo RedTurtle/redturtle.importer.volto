@@ -8,12 +8,9 @@ from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
 from time import sleep
 
-import collective.jsonmigrator
-import collective.transmogrifier
 import plone.restapi
 import redturtle.importer.base
 import redturtle.importer.volto
-import transmogrify.dexterity
 import six
 import sys
 
@@ -26,12 +23,8 @@ class RedturtleImporterVoltoLayer(PloneSandboxLayer):
         # Load any other ZCML that is required for your tests.
         # The z3c.autoinclude feature is disabled in the Plone fixture base
         # layer.
-        self.loadZCML(package=collective.jsonmigrator)
-        self.loadZCML(package=collective.transmogrifier)
         self.loadZCML(package=plone.restapi)
-        # self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
-        self.loadZCML(package=transmogrify.dexterity)
 
     # def setUpPloneSite(self, portal):
     #     applyProfile(portal, 'redturtle.importer.volto:default')
@@ -48,12 +41,9 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
 
         import collective.folderishtypes.dx
 
-        self.loadZCML(package=collective.jsonmigrator)
-        self.loadZCML(package=collective.transmogrifier)
         self.loadZCML(package=plone.restapi)
         self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
-        self.loadZCML(package=transmogrify.dexterity)
         self.loadZCML(package=collective.folderishtypes)
         self.loadZCML(package=collective.folderishtypes.dx)
 
@@ -76,7 +66,7 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
         super(RedturtleImporterVoltoDockerLayer, self).setUp()
 
     def setUpPloneSite(self, portal):
-        applyProfile(portal, 'collective.folderishtypes.dx:default')
+        applyProfile(portal, "collective.folderishtypes.dx:default")
 
 
 REDTURTLE_IMPORTER_VOLTO_FIXTURE = RedturtleImporterVoltoLayer()
@@ -85,18 +75,18 @@ REDTURTLE_IMPORTER_VOLTO_DOCKER_FIXTURE = RedturtleImporterVoltoDockerLayer()
 
 REDTURTLE_IMPORTER_VOLTO_INTEGRATION_TESTING = IntegrationTesting(
     bases=(REDTURTLE_IMPORTER_VOLTO_FIXTURE,),
-    name='RedturtleImporterVoltoLayer:IntegrationTesting',
+    name="RedturtleImporterVoltoLayer:IntegrationTesting",
 )
 
 
 REDTURTLE_IMPORTER_VOLTO_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(REDTURTLE_IMPORTER_VOLTO_FIXTURE,),
-    name='RedturtleImporterVoltoLayer:FunctionalTesting',
+    name="RedturtleImporterVoltoLayer:FunctionalTesting",
 )
 
 REDTURTLE_IMPORTER_VOLTO_DOCKER_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(REDTURTLE_IMPORTER_VOLTO_DOCKER_FIXTURE,),
-    name='RedturtleImporterVoltoDockerLayer:FunctionalTesting',
+    name="RedturtleImporterVoltoDockerLayer:FunctionalTesting",
 )
 
 REDTURTLE_IMPORTER_VOLTO_ACCEPTANCE_TESTING = FunctionalTesting(
@@ -105,5 +95,5 @@ REDTURTLE_IMPORTER_VOLTO_ACCEPTANCE_TESTING = FunctionalTesting(
         REMOTE_LIBRARY_BUNDLE_FIXTURE,
         z2.ZSERVER_FIXTURE,
     ),
-    name='RedturtleImporterVoltoLayer:AcceptanceTesting',
+    name="RedturtleImporterVoltoLayer:AcceptanceTesting",
 )
