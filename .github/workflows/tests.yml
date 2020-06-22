@@ -36,6 +36,11 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python }}
+      - name: Set up nodejs
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12"
+        run: yarn
       - name: Install dependencies
         run: |
           pip install -r requirements.txt -c constraints_plone${{ matrix.plone }}.txt
