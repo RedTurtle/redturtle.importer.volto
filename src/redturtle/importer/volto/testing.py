@@ -11,6 +11,7 @@ from time import sleep
 import plone.restapi
 import redturtle.importer.base
 import redturtle.importer.volto
+import redturtle.volto
 import six
 import sys
 
@@ -39,13 +40,15 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
         # The z3c.autoinclude feature is disabled in the Plone fixture base
         # layer.
 
-        import collective.folderishtypes.dx
+        import collective.folderishtypes
+        import collective.volto.cookieconsent
 
         self.loadZCML(package=plone.restapi)
         self.loadZCML(package=redturtle.importer.base)
         self.loadZCML(package=redturtle.importer.volto)
         self.loadZCML(package=collective.folderishtypes)
-        self.loadZCML(package=collective.folderishtypes.dx)
+        self.loadZCML(package=collective.volto.cookieconsent)
+        self.loadZCML(package=redturtle.volto)
 
     def setUp(self):
         """
@@ -66,7 +69,7 @@ class RedturtleImporterVoltoDockerLayer(PloneSandboxLayer):
         super(RedturtleImporterVoltoDockerLayer, self).setUp()
 
     def setUpPloneSite(self, portal):
-        applyProfile(portal, "collective.folderishtypes.dx:default")
+        applyProfile(portal, "redturtle.volto:default")
 
 
 REDTURTLE_IMPORTER_VOLTO_FIXTURE = RedturtleImporterVoltoLayer()

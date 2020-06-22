@@ -24,81 +24,81 @@ class TestMigration(unittest.TestCase):
 
     def setUp(self):
         """Custom shared utility setup for tests."""
-        self.portal = self.layer['portal']
-        self.request = self.layer['request']
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
+        self.portal = self.layer["portal"]
+        self.request = self.layer["request"]
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
 
         # enable blocks behavior
-        fti = queryUtility(IDexterityFTI, name='Document')
+        fti = queryUtility(IDexterityFTI, name="Document")
         behaviors = [x for x in fti.behaviors]
-        behaviors.append('volto.blocks')
+        behaviors.append("volto.blocks")
         fti.behaviors = tuple(behaviors)
 
         migration_view = api.content.get_view(
             name="data-migration", context=self.portal, request=self.request
         )
-        self.request.form['_authenticator'] = createToken()
+        self.request.form["_authenticator"] = createToken()
         migration_view.do_migrate()
 
     def test_migration_items_with_blocks(self):
-        document = api.content.find(id='first-document')[0].getObject()
+        document = api.content.find(id="first-document")[0].getObject()
         self.assertEqual(document.text, None)
         self.assertNotEqual(document.blocks, {})
 
-        news = api.content.find(id='a-news')[0].getObject()
-        self.assertNotEqual(news.text, None)
-        self.assertEqual(getattr(news, 'blocks', None), None)
+        news = api.content.find(id="a-news")[0].getObject()
+        self.assertEqual(news.text, None)
+        self.assertNotEqual(news.blocks, {})
 
     def test_migration_collection(self):
         # we don't have collection items
-        collections = api.content.find(portal_type='Collection')
+        collections = api.content.find(portal_type="Collection")
         self.assertEqual(len(collections), 0)
 
         # but migration converts collections into pages with listing block
-        collections = api.content.find(id='collection-item')
+        collections = api.content.find(id="collection-item")
         self.assertEqual(len(collections), 1)
         collection = collections[0].getObject()
         self.assertNotEqual(collection.blocks, {})
-        self.assertEqual(collection.portal_type, 'Document')
+        self.assertEqual(collection.portal_type, "Document")
         listing = [x for x in collection.blocks.values()][1]
-        self.assertEqual(listing['@type'], 'listing')
+        self.assertEqual(listing["@type"], "listing")
         self.assertEqual(
-            listing['query'],
+            listing["query"],
             [
                 {
-                    'i': 'portal_type',
-                    'o': 'plone.app.querystring.operation.selection.any',
-                    'v': ['Document', 'News Item'],
+                    "i": "portal_type",
+                    "o": "plone.app.querystring.operation.selection.any",
+                    "v": ["Document", "News Item"],
                 }
             ],
         )
 
     def test_migration_folders(self):
         # we don't have folders
-        folders = api.content.find(portal_type='Folder')
+        folders = api.content.find(portal_type="Folder")
         self.assertEqual(len(folders), 0)
 
         # but migration converts folders into pages with listing block
-        folders = api.content.find(id='folder-foo')
+        folders = api.content.find(id="folder-foo")
         self.assertEqual(len(folders), 1)
         folder = folders[0].getObject()
         self.assertNotEqual(folder.blocks, {})
-        self.assertEqual(folder.portal_type, 'Document')
+        self.assertEqual(folder.portal_type, "Document")
         listing = [x for x in folder.blocks.values()][1]
-        self.assertEqual(listing['@type'], 'listing')
+        self.assertEqual(listing["@type"], "listing")
         self.assertEqual(
-            listing['query'],
+            listing["query"],
             [
                 {
-                    'i': 'path',
-                    'o': 'plone.app.querystring.operation.string.path',
-                    'v': '{}::1'.format(folder.UID()),
+                    "i": "path",
+                    "o": "plone.app.querystring.operation.string.path",
+                    "v": "{}::1".format(folder.UID()),
                 }
             ],
         )
-        self.assertEqual(listing['sort_on'], 'getObjPositionInParent')
-        self.assertEqual(listing['b_size'], '30')
-        self.assertEqual(folder.keys(), ['second-document'])
+        self.assertEqual(listing["sort_on"], "getObjPositionInParent")
+        self.assertEqual(listing["b_size"], "30")
+        self.assertEqual(folder.keys(), ["second-document"])
 
     def test_migration_default_views(self):
         """
@@ -111,8 +111,8 @@ class TestMigration(unittest.TestCase):
 
         and third-document is the default view
         """
-        folder = api.content.get('/plone/folder-bar/folder-baz')
-        self.assertNotIn('third-document', folder.keys())
+        folder = api.content.get("/plone/folder-bar/folder-baz")
+        self.assertNotIn("third-document", folder.keys())
         self.assertEqual(len(folder.keys()), 2)
-        self.assertEqual(folder.portal_type, 'Document')
+        self.assertEqual(folder.portal_type, "Document")
         self.assertNotEqual(folder.blocks, {})
