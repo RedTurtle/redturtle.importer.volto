@@ -40,11 +40,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12"
-        run: yarn
       - name: Install dependencies
         run: |
           pip install -r requirements.txt -c constraints_plone${{ matrix.plone }}.txt
           cp test_plone${{ matrix.plone }}.cfg buildout.cfg
+          yarn
       - name: Install buildout
         run: |
           buildout -N -t 3 code-analysis:return-status-codes=True
