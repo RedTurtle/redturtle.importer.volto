@@ -68,16 +68,15 @@ class ConvertToBlocks(object):
         )
 
     def _remove_empty_tags(self, root):
-        if root.text not in [None, '', '\xa0', ' ']:
-            # tag has some text
-            return
-        if root.tag in ['br', 'img']:
+        if root.tag in ['br', 'img', 'iframe', 'embed', 'video']:
             # it's a self-closing tag
             return
+
         children = root.getchildren()
         if not children:
-            # empty element
-            root.getparent().remove(root)
+            if root.text in [None, '', '\xa0', ' ', '\r\n']:
+                # empty element
+                root.getparent().remove(root)
             return
         for child in children:
             self._remove_empty_tags(root=child)
@@ -87,8 +86,6 @@ class ConvertToBlocks(object):
 
     def _extract_img_from_tags(self, document, root):
         for image in document.xpath('//img'):
-            logger.info("Image outline: {}".format(self.outline(image)))
-
             # Get the current paragraph
             paragraph = image.getparent()
             while paragraph.getparent() != root:
@@ -101,15 +98,22 @@ class ConvertToBlocks(object):
                 image.attrib['data-href'] = img_parent.attrib.get('href', '')
             # Deal with images with links
 
-            # Move image to a new paragraph before current
-            root.insert(
-                root.index(paragraph),
-                lxml.html.builder.P(image),  # Wrap with a paragraph
-            )
+            # If image has a tail, insert a new span to replace it
             if image.tail:
-                paragraph.text = image.tail
+                if img_parent != paragraph:
+                    img_parent.insert(
+                        img_parent.index(image),
+                        lxml.html.builder.SPAN(image.tail),
+                    )
+                else:
+                    paragraph.insert(
+                        paragraph.index(image),
+                        lxml.html.builder.SPAN(image.tail),
+                    )
                 image.tail = ''
-            # Move image to a new paragraph before current
+
+            # move image before paragraph
+            root.insert(root.index(paragraph), lxml.html.builder.P(image))
 
             # clenup empty tags
             text = ''
@@ -187,14 +191,17 @@ class ConvertToBlocks(object):
         do something here
         """
         text = getattr(self.context, 'text', None)
+
+        if text:
+            text = text.raw
+        else:
+            text = item.get('text', '')
+
         if not text:
             return ''
-        html = text.raw
-        if not html:
-            # item has no text
-            return
+
         try:
-            html = self.fix_headers(html)
+            html = self.fix_headers(text)
         except ValueError:
             logger.warning(
                 'Unable to parse html for {}. Skipping.'.format(
@@ -211,7 +218,6 @@ class ConvertToBlocks(object):
             title_uuid = str(uuid4())
             blocks = {title_uuid: {"@type": "title"}}
             blocks_layout = {"items": [title_uuid]}
-
         try:
             result = self.conversion_tool(html)
         except (ValueError, UnicodeDecodeError):
