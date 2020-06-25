@@ -77,9 +77,7 @@ class VoltoCustomMapping(object):
                 # skip this content because it will be integrated in
                 # folder conversion below
                 if item.get("_uid") in self.items_in:
-                    self.items_in[item.get("_uid")][
-                        "reason"
-                    ] = "Converted default view"
+                    self.items_in[item.get("_uid")]["reason"] = "Converted default view"
                 else:
                     self.items_in[item.get("_uid")] = {
                         "id": item.get("_id"),

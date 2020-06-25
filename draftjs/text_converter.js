@@ -62,8 +62,19 @@ const getYTVideoId = (url) => {
 
 const generateImageBlock = (elem) => {
   let block = {};
+  let src = elem.src;
+  let scales = null;
+
+  if (src.indexOf("@@images") !== -1) {
+    scales = src.match(/@@images\/image\/(.*)/);
+    src = src.replace(/\/@@images.*$/, "");
+  } else if (src.indexOf("/image_") !== -1) {
+    scales = src.match(/image_(.*)/);
+    src = src.replace(/\/image_.*$/, "");
+  }
+
   block["@type"] = "image";
-  block.url = elem.src;
+  block.url = src;
   if (elem.dataset.href != null) {
     block.href = elem.dataset.href;
   }
@@ -74,6 +85,25 @@ const generateImageBlock = (elem) => {
   } else if (elem.className.indexOf("image-inline") !== -1) {
     block.align = "center";
   }
+
+  if (scales !== null) {
+    switch (scales[1]) {
+      case "large":
+      case "image_large":
+        block.size = "l";
+        break;
+      case "thumb":
+      case "image_thumb":
+      case "tile":
+      case "image_tile":
+        block.size = "s";
+        break;
+      default:
+        block.size = "m";
+        break;
+    }
+  }
+
   return block;
 };
 
