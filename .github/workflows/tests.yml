@@ -14,7 +14,7 @@ jobs:
         env:
           SITE: Plone
           PLONE_ADDONS: redturtle.exporter.base
-          VERSIONS: redturtle.exporter.base=1.1.1
+          VERSIONS: redturtle.exporter.base=1.1.4
 
     strategy:
       max-parallel: 4
