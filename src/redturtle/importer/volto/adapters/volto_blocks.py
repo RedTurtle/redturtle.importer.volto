@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-s
 from App.Common import package_home
-from plone import api
 from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
-from urllib.parse import urlparse
 from uuid import uuid4
 from zope.interface import implementer
 
@@ -42,15 +40,6 @@ class ConvertToBlocks(object):
             return lxml.html.tostring(document)
         return "".join(
             safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren()
-        )
-
-    def outline(self, img):
-        return " > ".join(
-            [
-                "{0}(text)".format(p.tag) if p.text and p.text.strip() else p.tag
-                for p in img.iterancestors()
-            ][::-1]
-            + ["img"]
         )
 
     def fix_html(self, html):
@@ -121,17 +110,16 @@ class ConvertToBlocks(object):
                     text = img_parent.text.strip()
             # clenup empty tags
 
-    def fix_url(self, data, type_, parent={}):
-        for k, v in list(data.items()):
-            if isinstance(v, dict):
-                data[k] = self.fix_url(v, type_, parent=data)
-                continue
-            if k not in ["src", "url"] or not v.startswith("http://nohost"):
-                continue
-            url = urlparse(v).path
-            url = "/" + "/".join(url.split("/")[2::1])
-            data[k] = url
-        return data
+    def fix_blocks(self, block):
+        block_type = block.get("@type", "")
+        if block_type == "text":
+            entity_map = block.get("text", {}).get("entityMap", {})
+            for entity in entity_map.values():
+                if entity.get("type") == "LINK":
+                    # draftjs set link in "url" but we want handle it in "href"
+                    url = entity.get("data", {}).get("url", "")
+                    entity["data"]["href"] = url
+        return block
 
     def conversion_tool(self, html):
         fd, filename = tempfile.mkstemp()
@@ -154,24 +142,6 @@ class ConvertToBlocks(object):
         finally:
             os.remove(filename)
         return result
-
-    def unresolve_uid(self, x):
-        uid = x.group(2)
-        end = ""
-        if "/" in uid:
-            uid, end = uid.split("/", 1)
-        obj = api.content.get(UID=uid)
-        if end:
-            result = "'{0}/{1}'".format(obj.absolute_url(), end)
-        else:
-            result = "'{0}'".format(obj.absolute_url())
-        return result
-
-    def get_raw_html(self):
-        text = getattr(self.context, "text", None)
-        if not text:
-            return ""
-        return RESOLVEUID_RE.sub(self.unresolve_uid, text.raw)
 
     def doSteps(self, item={}):
         """
@@ -212,11 +182,10 @@ class ConvertToBlocks(object):
                 "Failed to convert HTML {}".format(self.context.absolute_url())
             )
 
-        for paragraph in result:
-            paragraph = self.fix_url(paragraph, type_=paragraph["@type"])
-
+        for block in result:
+            block = self.fix_blocks(block)
             text_uuid = str(uuid4())
-            blocks[text_uuid] = paragraph
+            blocks[text_uuid] = block
             blocks_layout["items"].append(text_uuid)
         self.context.blocks = blocks
         self.context.blocks_layout = blocks_layout
