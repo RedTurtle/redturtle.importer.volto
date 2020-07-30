@@ -3,9 +3,7 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="redturtle.importer.volto">
 
-  <utility
-    component=".mapping.VoltoCustomMapping"
-    name="redturtle.importer.volto.voltomappings"
-    />
+  <subscriber factory=".types_mapping.VoltoMapping"
+    provides="redturtle.importer.base.interfaces.IPortalTypeMapping"/>
 
 </configure>
