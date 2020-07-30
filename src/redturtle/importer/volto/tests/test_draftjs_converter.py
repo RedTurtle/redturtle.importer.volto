@@ -385,3 +385,20 @@ class TestDraftjsConverter(unittest.TestCase):
         block = result[0]
         self.assertEqual(block["@type"], "video")
         self.assertEqual(block["url"], "https://youtu.be/VASywEuqFd8")
+
+    def test_converter_iframe_block(self):
+        html = '<iframe src="https://foo/bar" width="200"></iframe>'
+        result = self.converter.conversion_tool(html=html)
+        self.assertEqual(len(result), 1)
+        block = result[0]
+        self.assertEqual(block["@type"], "html")
+        self.assertEqual(block["html"], html)
+
+    def test_converter_cleanup_nasty_html(self):
+        result = self.converter.fix_html(html="<script>asdad</script><p>Some text</p>")
+        self.assertEqual(result, "<p>Some text</p>")
+
+        result = self.converter.fix_html(
+            html="<html><head><script>asdad</script></head><body><p>Some text</p></body></html>"  # noqa
+        )
+        self.assertEqual(result, "<p>Some text</p>")

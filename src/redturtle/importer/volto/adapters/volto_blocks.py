@@ -4,6 +4,7 @@ from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
 from zope.interface import implementer
+from plone import api
 
 import json
 import logging
@@ -43,6 +44,13 @@ class ConvertToBlocks(object):
         )
 
     def fix_html(self, html):
+        # cleanup html
+        portal_transforms = api.portal.get_tool(name="portal_transforms")
+        data = portal_transforms.convertTo(
+            "text/x-html-safe", html, mimetype="text/html"
+        )
+        html = data.getData()
+
         document = lxml.html.fromstring(html)
         root = document
         if root.tag != "div":
@@ -167,8 +175,8 @@ class ConvertToBlocks(object):
             )
             return
         html = self.fix_html(html)
-        blocks = self.context.blocks
-        blocks_layout = self.context.blocks_layout
+        blocks = getattr(self.context, "blocks", {})
+        blocks_layout = getattr(self.context, "blocks_layout", {})
         if not blocks:
             # add title as default. blocks can be already populated by
             # redturtle.importer.volto.voltomappings step

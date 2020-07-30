@@ -43,18 +43,22 @@ class VoltoMapping(object):
             default_item = item.get("_defaultitem", {})
             if default_item:
                 default_item_type = default_item.get("_type", "")
-                if default_item_type in ["Document", "News Item"]:
-                    item["text"] = default_item.get("text")
-                elif default_item_type == "Collection":
+                item["text"] = default_item.get("text", "")
+                if default_item_type == "Collection":
                     blocks = self.generate_listing_query(default_item)
                     item.update(blocks)
                 elif default_item_type in ["Folder", "Portlet Page"]:
+                    blocks = self.generate_listing_query(item)
+                    item.update(blocks)
+                else:
                     blocks = self.generate_listing_query(item)
                     item.update(blocks)
             else:
                 blocks = self.generate_listing_query(item)
                 item.update(blocks)
             item["_layout"] = ""
+            item["_defaultitem"] = ""
+            item["default_page"] = ""
             return item
         return item
 
