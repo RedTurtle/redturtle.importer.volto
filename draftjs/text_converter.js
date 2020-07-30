@@ -109,13 +109,14 @@ const generateImageBlock = (elem) => {
 
 const generateIframeBlock = (elem) => {
   let youtubeId = getYTVideoId(elem.src);
-  if (youtubeId.length == 0) {
-    //  not a youtube video
-    return generateStandardBlock(elem);
-  }
   let block = {};
-  block["@type"] = "video";
-  block.url = "https://youtu.be/" + youtubeId;
+  if (youtubeId.length == 0) {
+    block["@type"] = "html";
+    block.html = elem.outerHTML;
+  } else {
+    block["@type"] = "video";
+    block.url = "https://youtu.be/" + youtubeId;
+  }
   return block;
 };
 
