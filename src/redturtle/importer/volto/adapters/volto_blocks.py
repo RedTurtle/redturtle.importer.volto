@@ -50,9 +50,9 @@ class ConvertToBlocks(object):
         )
         html = data.getData()
 
+        if not html:
+            return ""
         document = lxml.html.fromstring(html)
-        if not document:
-            return html
         root = document
         if root.tag != "div":
             root = root.getparent()
