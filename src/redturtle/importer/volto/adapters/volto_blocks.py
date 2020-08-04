@@ -51,6 +51,8 @@ class ConvertToBlocks(object):
         html = data.getData()
 
         document = lxml.html.fromstring(html)
+        if not document:
+            return html
         root = document
         if root.tag != "div":
             root = root.getparent()
@@ -79,7 +81,7 @@ class ConvertToBlocks(object):
         for image in document.xpath("//img"):
             # Get the current paragraph
             paragraph = image.getparent()
-            while paragraph.getparent() != root:
+            while paragraph.getparent() not in [root, None]:
                 paragraph = paragraph.getparent()
             # Get the current paragraph
 
@@ -102,7 +104,10 @@ class ConvertToBlocks(object):
                 image.tail = ""
 
             # move image before paragraph
-            root.insert(root.index(paragraph), lxml.html.builder.P(image))
+            if paragraph.getparent() is None:
+                root.insert(root.index(image), lxml.html.builder.P(image))
+            else:
+                root.insert(root.index(paragraph), lxml.html.builder.P(image))
 
             # clenup empty tags
             text = ""
