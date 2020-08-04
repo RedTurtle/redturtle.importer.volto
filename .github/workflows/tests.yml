@@ -51,13 +51,13 @@ jobs:
           cp test_plone${{ matrix.plone }}.cfg buildout.cfg
       - name: Install nodejs dependencies
         run: |
-          cd ${{$GITHUB_WORKSPACE}}/converter
+          cd ${{GITHUB_WORKSPACE}}/converter
           yarn
       - name: Install buildout
         run: |
           buildout -N -t 3 code-analysis:return-status-codes=True
       - name: Run tests
         run: |
-          cd ${{$GITHUB_WORKSPACE}}/converter && yarn start &
+          cd ${{GITHUB_WORKSPACE}}/converter && yarn start &
           bin/code-analysis
           bin/test
