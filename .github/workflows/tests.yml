@@ -40,15 +40,24 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12"
-      - name: Install dependencies
+      - name: Check out draftjs converter repo
+        uses: actions/checkout@v2
+        with:
+          repository: RedTurtle/draftjs-converter
+          path: converter
+      - name: Install Plone dependencies
         run: |
           pip install -r requirements.txt -c constraints_plone${{ matrix.plone }}.txt
           cp test_plone${{ matrix.plone }}.cfg buildout.cfg
+      - name: Install nodejs dependencies
+        run: |
+          cd ${{$GITHUB_WORKSPACE}}/converter
           yarn
       - name: Install buildout
         run: |
           buildout -N -t 3 code-analysis:return-status-codes=True
       - name: Run tests
         run: |
+          cd ${{$GITHUB_WORKSPACE}}/converter && yarn start &
           bin/code-analysis
           bin/test

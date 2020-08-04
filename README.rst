@@ -16,19 +16,22 @@ Features
 There is a new adapter for **redturtle.importer.base** for content-types with **volto.blocks** enabled behavior
 that converts rich text from html (TinyMce) to json (DraftJs/blocks).
 
-Text converter
---------------
+HTML to DraftJs converter
+=========================
 
-To convert text from HTML to json we use the official DraftJs available library.
+For content-types with blocks enabled, we need to convert old-style HTML text to a DraftJs compatible data structure.
 
-This library is a javascript library, so we need to run a python subprocess that runs a
-javascript file that take an HTML input and generates a proper json file.
+The best library to do this, is the officiale one that is only available for Javascript.
 
-The script is located in `draftjs` folder and is called in `volto_blocks_converter` section.
+For that reason, to convert HTML we need to connect to an external tool: https://github.com/RedTurtle/draftjs-converter
 
-To run this code you need a quite recent `node` version (>= 10.x) installed locally.
+This is a nodejs rest api that accept some html and returns its DraftJs converted version.
 
-nvm is not an option right now because we had some problems running nvm in python subprocess.
+To use this api, we need to set an environment variable with its address in our buildout::
+
+    environment-vars +=
+        ...
+        DRAFTJS_CONVERTER_URL = http://localhost:3000/html_converter
 
 
 Blocks conversions
@@ -93,15 +96,6 @@ and then running ``bin/buildout``
 
 You don't have to install it. In this way, after the data migration, you can
 remove it from the buildout and everything is clean.
-
-You also need to install javascript dependencies (see `Text converter` section)::
-
-    > yarn
-
-
-Usage
-
-
 
 
 Contribute
