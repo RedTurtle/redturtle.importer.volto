@@ -31,7 +31,7 @@ To use this api, we need to set an environment variable with its address in our 
 
     environment-vars +=
         ...
-        DRAFTJS_CONVERTER_URL = http://localhost:3000/html_converter
+        DRAFTJS_CONVERTER_URL http://localhost:3000/html_converter
 
 
 Blocks conversions
