@@ -177,10 +177,11 @@ class ConvertToBlocks(object):
             blocks_layout = {"items": [title_uuid]}
         try:
             result = self.conversion_tool(html)
-        except (ValueError, UnicodeDecodeError):
+        except Exception:
             logger.error(
                 "Failed to convert HTML {}".format(self.context.absolute_url())
             )
+            return
 
         for block in result:
             block = self.fix_blocks(block)
