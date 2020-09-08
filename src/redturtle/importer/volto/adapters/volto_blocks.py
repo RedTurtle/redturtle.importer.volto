@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-s
-from App.Common import package_home
 from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
 from zope.interface import implementer
 from plone import api
 
-import json
 import logging
 import lxml
 import os
 import re
-import subprocess
-import tempfile
+import requests
 
 logger = logging.getLogger(__name__)
+
+draftjs_converter = os.environ.get("DRAFTJS_CONVERTER_URL")
 
 RESOLVEUID_RE = re.compile(
     r"""(['"]resolveuid/)(.*?)(['"])""", re.IGNORECASE | re.DOTALL
@@ -51,6 +50,8 @@ class ConvertToBlocks(object):
         )
         html = data.getData()
 
+        if not html:
+            return ""
         document = lxml.html.fromstring(html)
         root = document
         if root.tag != "div":
@@ -80,7 +81,7 @@ class ConvertToBlocks(object):
         for image in document.xpath("//img"):
             # Get the current paragraph
             paragraph = image.getparent()
-            while paragraph.getparent() != root:
+            while paragraph.getparent() not in [root, None]:
                 paragraph = paragraph.getparent()
             # Get the current paragraph
 
@@ -103,7 +104,10 @@ class ConvertToBlocks(object):
                 image.tail = ""
 
             # move image before paragraph
-            root.insert(root.index(paragraph), lxml.html.builder.P(image))
+            if paragraph.getparent() is None:
+                root.insert(root.index(image), lxml.html.builder.P(image))
+            else:
+                root.insert(root.index(paragraph), lxml.html.builder.P(image))
 
             # clenup empty tags
             text = ""
@@ -130,26 +134,14 @@ class ConvertToBlocks(object):
         return block
 
     def conversion_tool(self, html):
-        fd, filename = tempfile.mkstemp()
-        try:
-            with os.fdopen(fd, "w") as tmp:
-                tmp.write(safe_unicode(html))
-            subprocess.call(
-                [
-                    "yarn",
-                    "--silent",
-                    "convert-to-draftjs-debug"
-                    if os.environ.get("DEBUG", False)
-                    else "convert-to-draftjs",
-                    filename,
-                ],
-                cwd=package_home(globals()),
+        if not draftjs_converter:
+            raise Exception(
+                "DRAFTJS_CONVERTER_URL environment varialbe not set. Unable to convert html to draftjs."  #  noqa
             )
-            with open(filename, "r") as tmp:
-                result = json.load(tmp)
-        finally:
-            os.remove(filename)
-        return result
+        resp = requests.post(draftjs_converter, data={"html": html})
+        if resp.status_code != 200:
+            raise Exception("Unable to convert to draftjs this html: {}".format(html))
+        return resp.json()["data"]
 
     def doSteps(self, item={}):
         """
@@ -185,10 +177,11 @@ class ConvertToBlocks(object):
             blocks_layout = {"items": [title_uuid]}
         try:
             result = self.conversion_tool(html)
-        except (ValueError, UnicodeDecodeError):
+        except Exception:
             logger.error(
                 "Failed to convert HTML {}".format(self.context.absolute_url())
             )
+            return
 
         for block in result:
             block = self.fix_blocks(block)
