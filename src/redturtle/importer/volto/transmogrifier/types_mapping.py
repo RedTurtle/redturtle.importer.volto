@@ -26,8 +26,9 @@ class VoltoMapping(object):
         if item.get("_isdefaultpage", False):
             # skip this content because it will be integrated in
             # folder conversion below
-            item["skipped"] = True
-            item["skipped_message"] = "Converted default view"
+            if item[typekey] in ["Document", "Portlet Page", 'Collection']:
+                item["skipped"] = True
+                item["skipped_message"] = "Converted default view"
             return item
 
         portal_type = item[typekey]
