@@ -3,7 +3,11 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="redturtle.importer.volto">
 
+  <!-- types mapping -->
   <subscriber factory=".types_mapping.VoltoMapping"
     provides="redturtle.importer.base.interfaces.IPortalTypeMapping"/>
 
+  <!-- post migration steps -->
+  <subscriber factory=".fix_volto_references.FixVoltoReferences"
+    provides="redturtle.importer.base.interfaces.IPostMigrationStep"/>
 </configure>

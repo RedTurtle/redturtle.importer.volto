@@ -1,33 +1,39 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 from itertools import groupby
-from redturtle.importer.base.browser.migrations import RedTurtlePlone5MigrationMain
 from plone import api
-from urllib.parse import urlparse
 from plone.outputfilters.browser.resolveuid import uuidToObject
+from redturtle.importer.base.interfaces import IPostMigrationStep
+from urllib.parse import urlparse
+from zope.component import adapter
+from zope.interface import implementer
+from zope.interface import Interface
 
+import json
+import logging
 import re
 import requests
 
+logger = logging.getLogger(__name__)
 RESOLVEUID_RE = re.compile("^[./]*resolve[Uu]id/([^/]*)/?(.*)$")
 
 
-class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
-    """
-    """
+@adapter(Interface, Interface)
+@implementer(IPostMigrationStep)
+class FixVoltoReferences(object):
+    order = 50
 
-    def generate_broken_links_list(self):
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def __call__(self, transmogrifier):
         """
-        We generate this list from the other method
         """
-        pass
-
-    def scripts_post_migration(self):
-        super(VoltoMigrationMain, self).scripts_post_migration()
-        self.fix_volto_references()
-
-    def fix_volto_references(self):
-        brains = api.content.find(object_provides="plone.restapi.behaviors.IBlocks")
+        logger.info("## Fix volto references ##")
+        brains = api.content.find(
+            object_provides="plone.restapi.behaviors.IBlocks"
+        )
         broken_links = []
 
         for brain in brains:
@@ -40,7 +46,9 @@ class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
             )
             if self.has_broken_links(item.blocks):
                 broken_links.append(brain.getURL())
-        self.write_broken_links(broken_links)
+        self.write_broken_links(
+            paths=broken_links, transmogrifier=transmogrifier
+        )
 
     def has_broken_links(self, blocks):
         for block in blocks.values():
@@ -103,7 +111,9 @@ class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
     def fix_references_in_blocks(self, item, data, parent={}):
         for k, v in list(data.items()):
             if isinstance(v, dict):
-                data[k] = self.fix_references_in_blocks(item=item, data=v, parent=data)
+                data[k] = self.fix_references_in_blocks(
+                    item=item, data=v, parent=data
+                )
             if k not in ["src", "url", "href"] or "resolveuid" in v:
                 continue
             is_image = "@@images" in v
@@ -113,7 +123,9 @@ class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
                 path = path.split("@@images")[0]
             scheme = url_parsed.scheme
             if scheme != "":
-                resolveuid_url = self.path2uuid(is_image=is_image, path=path, url=v)
+                resolveuid_url = self.path2uuid(
+                    is_image=is_image, path=path, url=v
+                )
                 if resolveuid_url:
                     data[k] = resolveuid_url
                 continue
@@ -127,9 +139,30 @@ class VoltoMigrationMain(RedTurtlePlone5MigrationMain):
                 and item.getPhysicalPath()[:-parent_levels]
                 or item.getPhysicalPath()
             )
-            path = "/".join(item_path + tuple([x for x in path.split("../") if x]))
+            path = "/".join(
+                item_path + tuple([x for x in path.split("../") if x])
+            )
 
-            resolveuid_url = self.path2uuid(is_image=is_image, path=path, url=v)
+            resolveuid_url = self.path2uuid(
+                is_image=is_image, path=path, url=v
+            )
             if resolveuid_url:
                 data[k] = resolveuid_url
         return data
+
+    def write_broken_links(self, paths, transmogrifier):
+        section = transmogrifier.get("results")
+        if section is None:
+            logger.warning(
+                '"results" section not found in transmogrifier configuration.'
+                " Unable to write broken links file."
+            )
+            return
+        file_name = section.get("broken-links-tiny")
+        file_path = "{dir}/{portal_id}_{file_name}".format(
+            dir=section.get("migration-dir"),
+            portal_id=api.portal.get().getId(),
+            file_name=file_name,
+        )
+        with open(file_path, "w") as fp:
+            json.dump(paths, fp)

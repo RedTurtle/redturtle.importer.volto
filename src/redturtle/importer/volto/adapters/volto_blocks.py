@@ -39,7 +39,8 @@ class ConvertToBlocks(object):
         if document.tag != "div":
             return lxml.html.tostring(document)
         return "".join(
-            safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren()
+            safe_unicode(lxml.html.tostring(c))
+            for c in document.iterchildren()
         )
 
     def fix_html(self, html):
@@ -56,11 +57,17 @@ class ConvertToBlocks(object):
         root = document
         if root.tag != "div":
             root = root.getparent()
+        if not root:
+            return ""
         self._extract_img_from_tags(document=document, root=root)
         self._remove_empty_tags(root=root)
-        return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
+        return "".join(
+            safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
+        )
 
     def _remove_empty_tags(self, root):
+        if not root:
+            return
         if root.tag in ["br", "img", "iframe", "embed", "video"]:
             # it's a self-closing tag
             return
@@ -95,11 +102,13 @@ class ConvertToBlocks(object):
             if image.tail:
                 if img_parent != paragraph:
                     img_parent.insert(
-                        img_parent.index(image), lxml.html.builder.SPAN(image.tail)
+                        img_parent.index(image),
+                        lxml.html.builder.SPAN(image.tail),
                     )
                 else:
                     paragraph.insert(
-                        paragraph.index(image), lxml.html.builder.SPAN(image.tail)
+                        paragraph.index(image),
+                        lxml.html.builder.SPAN(image.tail),
                     )
                 image.tail = ""
 
@@ -140,7 +149,9 @@ class ConvertToBlocks(object):
             )
         resp = requests.post(draftjs_converter, data={"html": html})
         if resp.status_code != 200:
-            raise Exception("Unable to convert to draftjs this html: {}".format(html))
+            raise Exception(
+                "Unable to convert to draftjs this html: {}".format(html)
+            )
         return resp.json()["data"]
 
     def doSteps(self, item={}):
