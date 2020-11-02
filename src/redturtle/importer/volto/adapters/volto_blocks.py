@@ -154,6 +154,16 @@ class ConvertToBlocks(object):
             )
         return resp.json()["data"]
 
+    def fix_chars(self, text):
+        return (
+            text.replace("\r\n<p>&#194;&#160;</p>", "")
+            .replace("&#194;&#160;", "")
+            .replace("&#195;&#160;", "à")
+            .replace("&#195;&#168;", "è")
+            .replace("&#195;&#172;", "ì")
+            .replace("&#226;&#128;&#153;", "'")
+        )
+
     def doSteps(self, item={}):
         """
         do something here
@@ -169,6 +179,7 @@ class ConvertToBlocks(object):
             return ""
 
         try:
+            text = self.fix_chars(text=text)
             html = self.fix_headers(text)
         except ValueError:
             logger.warning(
