@@ -30,6 +30,8 @@ class FixVoltoReferences(object):
     def __call__(self, transmogrifier):
         """
         """
+        if not self.should_execute(transmogrifier=transmogrifier):
+            return
         logger.info("## Fix volto references ##")
         brains = api.content.find(
             object_provides="plone.restapi.behaviors.IBlocks"
@@ -166,3 +168,8 @@ class FixVoltoReferences(object):
         )
         with open(file_path, "w") as fp:
             json.dump(paths, fp)
+
+    def should_execute(self, transmogrifier):
+        section = transmogrifier.get("catalogsource")
+        flag = section.get("disable-post-scripts", "False").lower()
+        return flag == "false" or flag == 0
