@@ -158,6 +158,8 @@ class ConvertToBlocks(object):
         """
         do something here
         """
+        # if getattr(self.context, "blocks", {}):
+        #     return
         text = getattr(self.context, "text", None)
 
         if text:
@@ -166,8 +168,7 @@ class ConvertToBlocks(object):
             text = item.get("text", "")
 
         if not text:
-            return ""
-
+            return
         try:
             html = self.fix_headers(text)
         except ValueError:
@@ -178,14 +179,11 @@ class ConvertToBlocks(object):
             )
             return
         html = self.fix_html(html)
-        blocks = getattr(self.context, "blocks", {})
-        blocks_layout = getattr(self.context, "blocks_layout", {})
-        if not blocks:
-            # add title as default. blocks can be already populated by
-            # redturtle.importer.volto.voltomappings step
-            title_uuid = str(uuid4())
-            blocks = {title_uuid: {"@type": "title"}}
-            blocks_layout = {"items": [title_uuid]}
+
+        title_uuid = str(uuid4())
+        blocks = {title_uuid: {"@type": "title"}}
+        blocks_layout = {"items": [title_uuid]}
+
         try:
             result = self.conversion_tool(html)
         except Exception:
@@ -193,7 +191,6 @@ class ConvertToBlocks(object):
                 "Failed to convert HTML {}".format(self.context.absolute_url())
             )
             return
-
         for block in result:
             block = self.fix_blocks(block)
             text_uuid = str(uuid4())
