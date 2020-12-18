@@ -95,7 +95,9 @@ class TestDraftjsConverter(unittest.TestCase):
         entityMap = result[0]["text"]["entityMap"]
         self.assertEqual(result[0]["@type"], "text")
         self.assertEqual(p["text"], "this is a link")
-        self.assertEqual(p["entityRanges"], [{"key": 0, "length": 14, "offset": 0}])
+        self.assertEqual(
+            p["entityRanges"], [{"key": 0, "length": 14, "offset": 0}]
+        )
         self.assertEqual(
             entityMap,
             {
@@ -125,7 +127,9 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(entityMap, {})
 
     def test_converter_text_with_strong(self):
-        result = self.converter.conversion_tool(html="<p><strong>foo</strong></p>")
+        result = self.converter.conversion_tool(
+            html="<p><strong>foo</strong></p>"
+        )
         self.assertEqual(len(result), 1)
         p = result[0]["text"]["blocks"][0]
         entityMap = result[0]["text"]["entityMap"]
@@ -133,7 +137,8 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p["entityRanges"], [])
         self.assertEqual(p["text"], "foo")
         self.assertEqual(
-            p["inlineStyleRanges"], [{"offset": 0, "length": 3, "style": "BOLD"}]
+            p["inlineStyleRanges"],
+            [{"offset": 0, "length": 3, "style": "BOLD"}],
         )
         self.assertEqual(entityMap, {})
 
@@ -146,7 +151,8 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(p["entityRanges"], [])
         self.assertEqual(p["text"], "foo")
         self.assertEqual(
-            p["inlineStyleRanges"], [{"offset": 0, "length": 3, "style": "CODE"}]
+            p["inlineStyleRanges"],
+            [{"offset": 0, "length": 3, "style": "CODE"}],
         )
         self.assertEqual(entityMap, {})
 
@@ -183,7 +189,8 @@ class TestDraftjsConverter(unittest.TestCase):
         html = '<p><img src="/image.png"/>Some text</p>'
         result = self.converter.fix_html(html=html)
         self.assertEqual(
-            result, '<p><img src="/image.png"></p><p><span>Some text</span></p>'
+            result,
+            '<p><img src="/image.png"></p><p><span>Some text</span></p>',
         )
 
         converted = self.converter.conversion_tool(result)
@@ -342,19 +349,26 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(len(rows[0]["cells"]), 3)
         self.assertEqual(rows[0]["cells"][0]["type"], "data")
-        self.assertEqual(rows[0]["cells"][0]["value"]["blocks"][0]["text"], "foo")
+        self.assertEqual(
+            rows[0]["cells"][0]["value"]["blocks"][0]["text"], "foo"
+        )
 
     def test_converter_remove_empty_tags_from_html(self):
-        self.assertEqual(self.converter.fix_html(html="<p>Foo</p>"), "<p>Foo</p>")
+        self.assertEqual(
+            self.converter.fix_html(html="<p>Foo</p>"), "<p>Foo</p>"
+        )
         self.assertEqual(self.converter.fix_html(html="<p> </p>"), "")
         self.assertEqual(
             self.converter.fix_html(html="<p><strong><br /></strong></p>"),
             "<p><strong><br></strong></p>",
         )
         self.assertEqual(self.converter.fix_html(html="<p><i> </i></p>"), "")
-        self.assertEqual(self.converter.fix_html(html="<p><strong> </strong></p>"), "")
         self.assertEqual(
-            self.converter.fix_html(html="<p><i><br /></i></p>"), "<p><i><br></i></p>"
+            self.converter.fix_html(html="<p><strong> </strong></p>"), ""
+        )
+        self.assertEqual(
+            self.converter.fix_html(html="<p><i><br /></i></p>"),
+            "<p><i><br></i></p>",
         )
         self.assertEqual(
             self.converter.fix_html(html='<p><img src="/image.png"/></p>'),
@@ -395,7 +409,9 @@ class TestDraftjsConverter(unittest.TestCase):
         self.assertEqual(block["html"], html)
 
     def test_converter_cleanup_nasty_html(self):
-        result = self.converter.fix_html(html="<script>asdad</script><p>Some text</p>")
+        result = self.converter.fix_html(
+            html="<script>asdad</script><p>Some text</p>"
+        )
         self.assertEqual(result, "<p>Some text</p>")
 
         result = self.converter.fix_html(

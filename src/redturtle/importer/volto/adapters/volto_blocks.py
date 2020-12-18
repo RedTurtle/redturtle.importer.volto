@@ -66,7 +66,7 @@ class ConvertToBlocks(object):
         )
 
     def _remove_empty_tags(self, root):
-        if not root:
+        if root is None:
             return
         if root.tag in ["br", "img", "iframe", "embed", "video"]:
             # it's a self-closing tag
