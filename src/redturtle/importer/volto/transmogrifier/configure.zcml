@@ -3,6 +3,8 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="redturtle.importer.volto">
 
+ <include package=".deserializers" />
+
   <!-- types mapping -->
   <subscriber factory=".types_mapping.VoltoMapping"
     provides="redturtle.importer.base.interfaces.IPortalTypeMapping"/>

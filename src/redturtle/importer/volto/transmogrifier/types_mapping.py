@@ -61,6 +61,12 @@ class VoltoMapping(object):
             item["_defaultitem"] = ""
             item["default_page"] = ""
             return item
+        elif portal_type == "News Item":
+            item["descrizione_estesa"] = item["text"]
+            del item["text"]
+        elif portal_type == "Event":
+            item["descrizione_estesa"] = item["text"]
+            del item["text"]
         return item
 
     def generate_listing_query(self, item):
