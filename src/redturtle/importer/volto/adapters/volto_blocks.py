@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-s
+from Acquisition import aq_base
 from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
@@ -160,8 +161,8 @@ class ConvertToBlocks(object):
         """
         # if getattr(self.context, "blocks", {}):
         #     return
-        text = getattr(self.context, "text", None)
 
+        text = getattr(aq_base(self.context), "text", None)
         if text:
             text = text.raw
         else:

@@ -26,7 +26,7 @@ class VoltoMapping(object):
         if item.get("_isdefaultpage", False):
             # skip this content because it will be integrated in
             # folder conversion below
-            if item[typekey] in ["Document", "Portlet Page", 'Collection']:
+            if item[typekey] in ["Document", "Portlet Page", "Collection"]:
                 item["skipped"] = True
                 item["skipped_message"] = "Converted default view"
             return item
@@ -73,23 +73,35 @@ class VoltoMapping(object):
         title_uuid = str(uuid4())
         listing_uuid = str(uuid4())
         data = {}
-        query = item.get("query", [])
-        if not query:
-            query = [
-                {
-                    "i": "path",
-                    "o": "plone.app.querystring.operation.string.path",
-                    "v": "{uid}::1".format(uid=item.get("_uid")),
-                }
-            ]
+        query = []
+        if item.get("query", []):
+            fixed_query = []
+            #  some fixes in query
+            for query_item in item["query"]:
+                if query_item["i"] == "path":
+                    o = query_item["o"]
+                    if o == "plone.app.querystring.operation.selection.any":
+                        query_item[
+                            "o"
+                        ] = "plone.app.querystring.operation.string.path"
+                if query_item[
+                    "i"
+                ] == "portal_type" and "Folder" in query_item.get("v", []):
+                    query_item["v"] = [
+                        x for x in query_item["v"] if x != "Folder"
+                    ] + ["Document"]
+                fixed_query.append(query_item)
+            query = fixed_query
         data["blocks"] = {
             title_uuid: {"@type": "title"},
             listing_uuid: {
                 "@type": "listing",
-                "query": query,
-                "sort_on": item.get("sort_on", "getObjPositionInParent"),
-                "sort_order": item.get("sort_reversed", False),
-                "b_size": item.get("item_count", "30"),
+                "querystring": {
+                    "query": query,
+                    "sort_on": item.get("sort_on", "getObjPositionInParent"),
+                    "sort_order": item.get("sort_reversed", False),
+                    "b_size": item.get("item_count", "30"),
+                },
                 "block": listing_uuid,
             },
         }
