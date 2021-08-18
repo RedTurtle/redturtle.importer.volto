@@ -60,6 +60,7 @@ class VoltoMapping(object):
             item["_layout"] = ""
             item["_defaultitem"] = ""
             item["default_page"] = ""
+            item["_properties"] = [x for x in item["_properties"] if x[0] != "layout"]
             return item
         elif portal_type == "News Item":
             item["descrizione_estesa"] = item["text"]
