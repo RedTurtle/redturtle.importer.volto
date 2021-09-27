@@ -21,8 +21,7 @@ class VoltoMapping(object):
         self.request = request
 
     def __call__(self, item, typekey):
-        """
-        """
+        """ """
         if item.get("_isdefaultpage", False):
             # skip this content because it will be integrated in
             # folder conversion below
@@ -62,12 +61,12 @@ class VoltoMapping(object):
             item["default_page"] = ""
             item["_properties"] = [x for x in item["_properties"] if x[0] != "layout"]
             return item
-        elif portal_type == "News Item":
-            item["descrizione_estesa"] = item["text"]
-            del item["text"]
-        elif portal_type == "Event":
-            item["descrizione_estesa"] = item["text"]
-            del item["text"]
+        # elif portal_type == "News Item":
+        #     item["descrizione_estesa"] = item["text"]
+        #     del item["text"]
+        # elif portal_type == "Event":
+        #     item["descrizione_estesa"] = item["text"]
+        #     del item["text"]
         return item
 
     def generate_listing_query(self, item):
@@ -82,15 +81,13 @@ class VoltoMapping(object):
                 if query_item["i"] == "path":
                     o = query_item["o"]
                     if o == "plone.app.querystring.operation.selection.any":
-                        query_item[
-                            "o"
-                        ] = "plone.app.querystring.operation.string.path"
-                if query_item[
-                    "i"
-                ] == "portal_type" and "Folder" in query_item.get("v", []):
-                    query_item["v"] = [
-                        x for x in query_item["v"] if x != "Folder"
-                    ] + ["Document"]
+                        query_item["o"] = "plone.app.querystring.operation.string.path"
+                if query_item["i"] == "portal_type" and "Folder" in query_item.get(
+                    "v", []
+                ):
+                    query_item["v"] = [x for x in query_item["v"] if x != "Folder"] + [
+                        "Document"
+                    ]
                 fixed_query.append(query_item)
             query = fixed_query
         data["blocks"] = {
