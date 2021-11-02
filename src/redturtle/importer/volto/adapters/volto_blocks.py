@@ -44,15 +44,9 @@ class ConvertToBlocks(object):
         )
 
     def fix_html(self, html):
-        # cleanup html
-        portal_transforms = api.portal.get_tool(name="portal_transforms")
-        data = portal_transforms.convertTo(
-            "text/x-html-safe", html, mimetype="text/html"
-        )
-        html = data.getData()
-
         if not html:
             return ""
+
         document = lxml.html.fromstring(html)
         root = document
         if root.tag != "div":
@@ -61,6 +55,7 @@ class ConvertToBlocks(object):
             return ""
         self._extract_img_from_tags(document=document, root=root)
         self._remove_empty_tags(root=root)
+
         return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
 
     def _remove_empty_tags(self, root):
@@ -73,11 +68,16 @@ class ConvertToBlocks(object):
         children = root.getchildren()
         if not children:
             if root.text in [None, "", "\xa0", " ", "\r\n"]:
-                # empty element
-                root.getparent().remove(root)
+                if root.tail:
+                    root.text = root.tail
+                    root.tail = ""
+                else:
+                    root.getparent().remove(root)
             return
+
         for child in children:
             self._remove_empty_tags(root=child)
+
         if not root.getchildren():
             # root had empty children that has been removed
             root.getparent().remove(root)
