@@ -5,7 +5,6 @@ from plone import api
 
 import logging
 import lxml
-import os
 import re
 import requests
 
@@ -28,17 +27,13 @@ def _fix_headers(html):
         header.tag = "h3"
     if document.tag != "div":
         return lxml.html.tostring(document)
-    return "".join(
-        safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren()
-    )
+    return "".join(safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren())
 
 
 def _fix_html(html):
     # cleanup html
     portal_transforms = api.portal.get_tool(name="portal_transforms")
-    data = portal_transforms.convertTo(
-        "text/x-html-safe", html, mimetype="text/html"
-    )
+    data = portal_transforms.convertTo("text/x-html-safe", html, mimetype="text/html")
     html = data.getData()
 
     if html is None:
@@ -51,9 +46,7 @@ def _fix_html(html):
         return ""
     _extract_img_from_tags(document=document, root=root)
     _remove_empty_tags(root=root)
-    return "".join(
-        safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
-    )
+    return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
 
 
 def _remove_empty_tags(root):
@@ -62,9 +55,6 @@ def _remove_empty_tags(root):
     if root.tag in ["br", "img", "iframe", "embed", "video"]:
         # it's a self-closing tag
         return
-    import pdb
-
-    pdb.set_trace()
     children = root.getchildren()
     if not children:
         if root.text in [None, "", "\xa0", " ", "\r\n"]:
@@ -101,7 +91,8 @@ def _extract_img_from_tags(document, root):
                 )
             else:
                 paragraph.insert(
-                    paragraph.index(image), lxml.html.builder.SPAN(image.tail),
+                    paragraph.index(image),
+                    lxml.html.builder.SPAN(image.tail),
                 )
             image.tail = ""
 
@@ -144,9 +135,7 @@ def _conversion_tool(html):
         )
     resp = requests.post(draftjs_converter, data={"html": html})
     if resp.status_code != 200:
-        raise Exception(
-            "Unable to convert to draftjs this html: {}".format(html)
-        )
+        raise Exception("Unable to convert to draftjs this html: {}".format(html))
     return resp.json()["data"]
 
 
@@ -156,9 +145,6 @@ def to_draftjs(text):
     """
     if not text:
         return {"blocks": {}, "blocks_layout": {"items": []}}
-    import pdb
-
-    pdb.set_trace()
     html = _fix_headers(text)
     html = _fix_html(html)
 
