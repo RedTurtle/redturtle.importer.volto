@@ -4,7 +4,6 @@ from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
 from zope.interface import implementer
-from plone import api
 
 import logging
 import lxml
