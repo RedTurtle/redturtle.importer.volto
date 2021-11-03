@@ -55,14 +55,23 @@ def _remove_empty_tags(root):
     if root.tag in ["br", "img", "iframe", "embed", "video"]:
         # it's a self-closing tag
         return
+
     children = root.getchildren()
     if not children:
         if root.text in [None, "", "\xa0", " ", "\r\n"]:
-            # empty element
-            root.getparent().remove(root)
+            if root.tail:
+                if root.text:
+                    root.text += root.tail
+                else:
+                    root.text = root.tail
+                root.tail = ""
+            elif root.tag == "p":
+                root.getparent().remove(root)
         return
+
     for child in children:
         _remove_empty_tags(root=child)
+
     if not root.getchildren():
         # root had empty children that has been removed
         root.getparent().remove(root)
