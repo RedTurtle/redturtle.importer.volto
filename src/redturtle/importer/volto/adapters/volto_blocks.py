@@ -48,7 +48,7 @@ class ConvertToBlocks(object):
 
         document = lxml.html.fromstring(html)
         root = document
-        if root.tag != "div":
+        if root.tag != "div" and root.getparent():
             root = root.getparent()
         if not root:
             return ""
@@ -64,6 +64,10 @@ class ConvertToBlocks(object):
             # it's a self-closing tag
             return
 
+        if root.tag == "script":
+            root.getparent().remove(root)
+            return
+
         children = root.getchildren()
         if not children:
             if root.text in [None, "", "\xa0", " ", "\r\n"]:
@@ -73,7 +77,7 @@ class ConvertToBlocks(object):
                     else:
                         root.text = root.tail
                     root.tail = ""
-                elif root.tag == "p":
+                elif root.tag != "span":
                     root.getparent().remove(root)
             return
 
