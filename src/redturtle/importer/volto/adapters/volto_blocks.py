@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-s
 from Acquisition import aq_base
 from Products.CMFPlone.utils import safe_unicode
+from plone import api
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
 from zope.interface import implementer
@@ -68,9 +69,12 @@ class ConvertToBlocks(object):
         if not children:
             if root.text in [None, "", "\xa0", " ", "\r\n"]:
                 if root.tail:
-                    root.text = root.tail
+                    if root.text:
+                        root.text += root.tail
+                    else:
+                        root.text = root.tail
                     root.tail = ""
-                else:
+                elif root.tag == "p":
                     root.getparent().remove(root)
             return
 
