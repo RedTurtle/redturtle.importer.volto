@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-s
+from Acquisition import aq_base
 from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
@@ -39,8 +40,7 @@ class ConvertToBlocks(object):
         if document.tag != "div":
             return lxml.html.tostring(document)
         return "".join(
-            safe_unicode(lxml.html.tostring(c))
-            for c in document.iterchildren()
+            safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren()
         )
 
     def fix_html(self, html):
@@ -61,9 +61,7 @@ class ConvertToBlocks(object):
             return ""
         self._extract_img_from_tags(document=document, root=root)
         self._remove_empty_tags(root=root)
-        return "".join(
-            safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
-        )
+        return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
 
     def _remove_empty_tags(self, root):
         if root is None:
@@ -149,9 +147,7 @@ class ConvertToBlocks(object):
             )
         resp = requests.post(draftjs_converter, data={"html": html})
         if resp.status_code != 200:
-            raise Exception(
-                "Unable to convert to draftjs this html: {}".format(html)
-            )
+            raise Exception("Unable to convert to draftjs this html: {}".format(html))
         return resp.json()["data"]
 
     def doSteps(self, item={}):
@@ -160,8 +156,7 @@ class ConvertToBlocks(object):
         """
         # if getattr(self.context, "blocks", {}):
         #     return
-        text = getattr(self.context, "text", None)
-
+        text = getattr(aq_base(self.context), "text", None)
         if text:
             text = text.raw
         else:
