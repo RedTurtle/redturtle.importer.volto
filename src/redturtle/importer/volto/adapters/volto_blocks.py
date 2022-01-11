@@ -59,8 +59,10 @@ class ConvertToBlocks(object):
             root = root.getparent()
         if not root:
             return ""
+
         self._extract_img_from_tags(document=document, root=root)
         self._remove_empty_tags(root=root)
+
         return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
 
     def _remove_empty_tags(self, root):
@@ -77,6 +79,10 @@ class ConvertToBlocks(object):
                 root.getparent().remove(root)
             return
         for child in children:
+            if child.tag == "span" and child.attrib.get("class", None) == "titoletto":
+                child.tag = "h4"
+                child.attrib.pop("class", None)
+
             self._remove_empty_tags(root=child)
         if not root.getchildren():
             # root had empty children that has been removed
@@ -129,6 +135,14 @@ class ConvertToBlocks(object):
                     text = img_parent.text.strip()
             # clenup empty tags
 
+    def is_empty_block(self, block):
+        block_type = block.get("@type", "")
+        if block_type == "text":
+            text = block.get("text", {})["blocks"][0].get("text", "")
+            if not text:
+                return True
+        return False
+
     def fix_blocks(self, block):
         block_type = block.get("@type", "")
         if block_type == "text":
@@ -156,6 +170,7 @@ class ConvertToBlocks(object):
         """
         # if getattr(self.context, "blocks", {}):
         #     return
+
         text = getattr(aq_base(self.context), "text", None)
         if text:
             text = text.raw
@@ -186,6 +201,7 @@ class ConvertToBlocks(object):
                 "Failed to convert HTML {}".format(self.context.absolute_url())
             )
             return
+        result = [x for x in result if not self.is_empty_block(x)]
         for block in result:
             block = self.fix_blocks(block)
             text_uuid = str(uuid4())

@@ -53,12 +53,21 @@ class BlocksDeserializer(object):
         blocks_layout = {"items": []}
 
         result = converter.conversion_tool(html=html)
+        result = [x for x in result if not self._is_empty_block(x)]
         for block in result:
             block = self._fix_blocks(block)
             text_uuid = str(uuid4())
             blocks[text_uuid] = block
             blocks_layout["items"].append(text_uuid)
         return {"blocks": blocks, "blocks_layout": blocks_layout}
+
+    def _is_empty_block(self, block):
+        block_type = block.get("@type", "")
+        if block_type == "text":
+            text = block.get("text", {})["blocks"][0].get("text", "")
+            if not text:
+                return True
+        return False
 
     def _fix_blocks(self, block):
         block_type = block.get("@type", "")
