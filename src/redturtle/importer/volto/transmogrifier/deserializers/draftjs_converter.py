@@ -10,8 +10,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# draftjs_converter = os.environ.get("DRAFTJS_CONVERTER_URL")
-draftjs_converter = "http://draftjs-converter.aida.redturtle.it"
+draftjs_converter = os.environ.get("DRAFTJS_CONVERTER_URL")
 
 RESOLVEUID_RE = re.compile(
     r"""(['"]resolveuid/)(.*?)(['"])""", re.IGNORECASE | re.DOTALL
