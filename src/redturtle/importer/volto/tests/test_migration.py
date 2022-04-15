@@ -63,7 +63,7 @@ class TestMigration(unittest.TestCase):
         listing = [x for x in collection.blocks.values()][1]
         self.assertEqual(listing["@type"], "listing")
         self.assertEqual(
-            listing["query"],
+            listing["querystring"]["query"],
             [
                 {
                     "i": "portal_type",
@@ -87,17 +87,11 @@ class TestMigration(unittest.TestCase):
         listing = [x for x in folder.blocks.values()][1]
         self.assertEqual(listing["@type"], "listing")
         self.assertEqual(
-            listing["query"],
-            [
-                {
-                    "i": "path",
-                    "o": "plone.app.querystring.operation.string.path",
-                    "v": "{}::1".format(folder.UID()),
-                }
-            ],
+            listing["querystring"]["query"],
+            [],
         )
-        self.assertEqual(listing["sort_on"], "getObjPositionInParent")
-        self.assertEqual(listing["b_size"], "30")
+        self.assertEqual(listing["querystring"]["sort_on"], "getObjPositionInParent")
+        self.assertEqual(listing["querystring"]["b_size"], "30")
         self.assertEqual(folder.keys(), ["second-document"])
 
     def test_migration_default_views(self):

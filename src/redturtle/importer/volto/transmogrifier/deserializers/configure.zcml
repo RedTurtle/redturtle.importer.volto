@@ -1,0 +1,10 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  i18n_domain="redturtle.importer.volto"
+  xmlns:zcml="http://namespaces.zope.org/zcml">
+
+  <configure zcml:condition="installed collective.volto.blocksfield">
+    <adapter factory=".blocks.BlocksDeserializer" />
+  </configure>
+
+</configure>

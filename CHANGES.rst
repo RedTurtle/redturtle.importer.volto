@@ -5,7 +5,8 @@ Changelog
 1.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added Block deserializer
+  [eikichi18]
 
 
 1.0.0 (2020-12-18)

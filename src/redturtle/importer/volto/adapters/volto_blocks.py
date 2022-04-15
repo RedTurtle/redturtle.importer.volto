@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-s
+from Acquisition import aq_base
 from Products.CMFPlone.utils import safe_unicode
 from redturtle.importer.base.interfaces import IMigrationContextSteps
 from uuid import uuid4
 from zope.interface import implementer
-from plone import api
 
 import logging
 import lxml
@@ -39,31 +39,23 @@ class ConvertToBlocks(object):
         if document.tag != "div":
             return lxml.html.tostring(document)
         return "".join(
-            safe_unicode(lxml.html.tostring(c))
-            for c in document.iterchildren()
+            safe_unicode(lxml.html.tostring(c)) for c in document.iterchildren()
         )
 
     def fix_html(self, html):
-        # cleanup html
-        portal_transforms = api.portal.get_tool(name="portal_transforms")
-        data = portal_transforms.convertTo(
-            "text/x-html-safe", html, mimetype="text/html"
-        )
-        html = data.getData()
-
         if not html:
             return ""
+
         document = lxml.html.fromstring(html)
         root = document
-        if root.tag != "div":
+        if root.tag != "div" and root.getparent():
             root = root.getparent()
         if not root:
             return ""
         self._extract_img_from_tags(document=document, root=root)
         self._remove_empty_tags(root=root)
-        return "".join(
-            safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren()
-        )
+
+        return "".join(safe_unicode(lxml.html.tostring(c)) for c in root.iterchildren())
 
     def _remove_empty_tags(self, root):
         if root is None:
@@ -72,14 +64,26 @@ class ConvertToBlocks(object):
             # it's a self-closing tag
             return
 
+        if root.tag == "script":
+            root.getparent().remove(root)
+            return
+
         children = root.getchildren()
         if not children:
             if root.text in [None, "", "\xa0", " ", "\r\n"]:
-                # empty element
-                root.getparent().remove(root)
+                if root.tail:
+                    if root.text:
+                        root.text += root.tail
+                    else:
+                        root.text = root.tail
+                    root.tail = ""
+                elif root.tag != "span":
+                    root.getparent().remove(root)
             return
+
         for child in children:
             self._remove_empty_tags(root=child)
+
         if not root.getchildren():
             # root had empty children that has been removed
             root.getparent().remove(root)
@@ -149,9 +153,7 @@ class ConvertToBlocks(object):
             )
         resp = requests.post(draftjs_converter, data={"html": html})
         if resp.status_code != 200:
-            raise Exception(
-                "Unable to convert to draftjs this html: {}".format(html)
-            )
+            raise Exception("Unable to convert to draftjs this html: {}".format(html))
         return resp.json()["data"]
 
     def doSteps(self, item={}):
@@ -160,8 +162,7 @@ class ConvertToBlocks(object):
         """
         # if getattr(self.context, "blocks", {}):
         #     return
-        text = getattr(self.context, "text", None)
-
+        text = getattr(aq_base(self.context), "text", None)
         if text:
             text = text.raw
         else:
