@@ -412,9 +412,9 @@ class TestDraftjsConverter(unittest.TestCase):
         result = self.converter.fix_html(
             html="<script>asdad</script><p>Some text</p>"
         )
-        self.assertEqual(result, "<p>Some text</p>")
+        self.assertEqual(result, "<body><p>Some text</p></body>")
 
         result = self.converter.fix_html(
             html="<html><head><script>asdad</script></head><body><p>Some text</p></body></html>"  # noqa
         )
-        self.assertEqual(result, "<p>Some text</p>")
+        self.assertEqual(result, "<body><p>Some text</p></body>")

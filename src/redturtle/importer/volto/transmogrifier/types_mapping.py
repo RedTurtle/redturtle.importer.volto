@@ -44,6 +44,10 @@ class VoltoMapping(object):
             if default_item:
                 default_item_type = default_item.get("_type", "")
                 item["text"] = default_item.get("text", "")
+ 
+                if item["_defaultitem"].get("relatedItems", None):
+                    item["relatedItems"] = item["_defaultitem"]["relatedItems"]
+
                 if default_item_type == "Collection":
                     blocks = self.generate_listing_query(default_item)
                     item.update(blocks)
